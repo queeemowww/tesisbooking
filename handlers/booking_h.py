@@ -19,7 +19,7 @@ async def connect_manager(message: types.Message):
         bk = Booking()
         screenshot = FSInputFile("555-"+awb+".png")
         try:
-            await bk.book(awb, fr, to, pcs, w, v, cargo, flight, day, month)
+            await bk.book(awb, fr, to, pcs, w, v, cargo, flight, day, month, message)
             await message.answer("Success!")
             await message.answer_photo(photo=screenshot)
             os.remove("555-"+awb+".png")
