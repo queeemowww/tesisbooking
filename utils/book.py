@@ -15,9 +15,9 @@ class Booking():
     def __init__(self):
         self.chrome_options = Options()
         self.chrome_options.add_experimental_option("detach", True)
-        # self.chrome_options.add_argument('--headless')
-        # self.chrome_options.add_argument('--no-sandbox')
-        # self.chrome_options.add_argument('--disable-dev-shm-usage')
+        self.chrome_options.add_argument('--headless')
+        self.chrome_options.add_argument('--no-sandbox')
+        self.chrome_options.add_argument('--disable-dev-shm-usage')
         self.browser = webdriver.Chrome(self.chrome_options)
 
     async def book(self, awb, fr = None, to = None, pcs = None, w = None, v = None, cargo = None, flight = None, day = None, month = None):
