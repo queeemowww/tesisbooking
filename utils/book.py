@@ -15,9 +15,9 @@ class Booking():
     def __init__(self):
         self.chrome_options = Options()
         self.chrome_options.add_experimental_option("detach", True)
-        self.chrome_options.add_argument('--headless')
-        self.chrome_options.add_argument('--no-sandbox')
-        self.chrome_options.add_argument('--disable-dev-shm-usage')
+        # self.chrome_options.add_argument('--headless')
+        # self.chrome_options.add_argument('--no-sandbox')
+        # self.chrome_options.add_argument('--disable-dev-shm-usage')
         self.browser = webdriver.Chrome(self.chrome_options)
 
     async def book(self, awb, fr = None, to = None, pcs = None, w = None, v = None, cargo = None, flight = None, day = None, month = None):
@@ -66,9 +66,6 @@ class Booking():
                     td_elems[0].click()
                     flag = False
                     break
-                # if len(next_pg_elem) > 0:
-                #     next_pg_elem.click()
-                #     time.sleep(1)
             try:
                 next_pg_elem.click()
                 time.sleep(1)
@@ -81,10 +78,11 @@ class Booking():
         confirm_el = self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-btn css-lked6w ant-btn-primary ant-btn-color-primary ant-btn-variant-solid"]')[1]
         confirm_el.click()
         time.sleep(1)
-        self.browser.execute_script("window.scrollTo(0, 0)")
+        apply_el.send_keys(Keys.ARROW_UP, Keys.ARROW_UP, Keys.ARROW_UP)
         self.browser.save_screenshot("555-"+awb+".png")
 
             
 # if __name__ == '__main__':
 #     bk = Booking()
-#     bk.book('04896474', "LED", "SVO", 3, 34, '0.2', "SPP", "6519", "13")
+#     bk.look()
+#     # bk.book('04896474', "LED", "SVO", 3, 34, '0.2', "SPP", "6519", "13")
