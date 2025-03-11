@@ -8,16 +8,16 @@ from dotenv import load_dotenv
 import time
 load_dotenv()
 
-LOGIN = os.getenv('LOGIN')
-PASS = os.getenv('PASS')
+LOGIN = os.getenv('LOGIN_TR')
+PASS = os.getenv('PASS_TR')
 
 class Booking():
     def __init__(self):
         self.chrome_options = Options()
         self.chrome_options.add_experimental_option("detach", True)
-        self.chrome_options.add_argument('--headless')
-        self.chrome_options.add_argument('--no-sandbox')
-        self.chrome_options.add_argument('--disable-dev-shm-usage')
+        # self.chrome_options.add_argument('--headless')
+        # self.chrome_options.add_argument('--no-sandbox')
+        # self.chrome_options.add_argument('--disable-dev-shm-usage')
         self.browser = webdriver.Chrome(self.chrome_options)
 
     async def book(self, awb, fr = None, to = None, pcs = None, w = None, v = None, cargo = None, flight = None, day = None, month = None, message = None):
@@ -40,6 +40,8 @@ class Booking():
 
         awb_input_el = self.browser.find_elements(By.TAG_NAME, 'input')[5]
         awb_input_el.send_keys("555-", awb, Keys.ENTER)
+        awb_actual = self.browser.find_elements(By.TAG_NAME, 'input')[5].text
+        await message.answer(awb_actual)
         from_input_el = self.browser.find_elements(By.TAG_NAME, 'input')[8]
         from_input_el.send_keys(fr, Keys.ENTER)
         to_input_el = self.browser.find_elements(By.TAG_NAME, 'input')[9]
@@ -81,10 +83,11 @@ class Booking():
         confirm_el.click()
         time.sleep(.5)
         apply_el.send_keys(Keys.ARROW_UP, Keys.ARROW_UP, Keys.ARROW_UP)
+        await message.answer(self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-descriptions-item-content"]'))
         self.browser.save_screenshot("555-"+awb+".png")
+        self.browser.close()
 
             
-# if __name__ == '__main__':
-#     bk = Booking()
-#     bk.look()
-#     # bk.book('04896474', "LED", "SVO", 3, 34, '0.2', "SPP", "6519", "13")
+if __name__ == '__main__':
+    bk = Booking()
+    bk.book('04896474', "LED", "SVO", 3, 34, '0.2', "SPP", "6519", "13")

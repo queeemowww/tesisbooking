@@ -25,8 +25,6 @@ class Reservation():
     async def logic(self):
         @self.dp.message(Command("start"))
         async def cmd_start(message: types.Message):
-            # self.database.insert_user(message.chat.id, message.chat.username, message.chat.first_name, message.chat.last_name)
-            # self.database.cursor.close()
             await message.answer(
                 "Hello, this is an official Tesis cargo booking system. Please send your FFR message here"
             )
