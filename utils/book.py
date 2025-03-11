@@ -15,9 +15,9 @@ class Booking():
     def __init__(self):
         self.chrome_options = Options()
         self.chrome_options.add_experimental_option("detach", True)
-        self.chrome_options.add_argument('--headless')
-        self.chrome_options.add_argument('--no-sandbox')
-        self.chrome_options.add_argument('--disable-dev-shm-usage')
+        # self.chrome_options.add_argument('--headless')
+        # self.chrome_options.add_argument('--no-sandbox')
+        # self.chrome_options.add_argument('--disable-dev-shm-usage')
         self.browser = webdriver.Chrome(self.chrome_options)
 
     async def book(self, awb, fr = None, to = None, pcs = None, w = None, v = None, cargo = None, flight = None, day = None, month = None, message = None):
@@ -26,6 +26,9 @@ class Booking():
             return 'The service is not available at the moment. Please try your request later'
         self.browser.get(url)
         time.sleep(1)
+        self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-space css-lked6w ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"]').click()
+        time.sleep(.1)
+        self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-dropdown-menu-title-content"]')[1].click()
         await message.answer("Authorizing...")
         login_el = self.browser.find_elements(By.TAG_NAME, "input")[0]
         pass_el = self.browser.find_elements(By.TAG_NAME, "input")[1]
@@ -43,7 +46,6 @@ class Booking():
         awb_input_el.send_keys(Keys.ENTER, Keys.ENTER)
         awb_actual = self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-select-selector"]')[3].text
         time.sleep(1)
-        await message.answer(awb_actual)
         from_input_el = self.browser.find_elements(By.TAG_NAME, 'input')[8]
         from_input_el.send_keys(fr, Keys.ENTER)
         to_input_el = self.browser.find_elements(By.TAG_NAME, 'input')[9]
@@ -83,9 +85,9 @@ class Booking():
         time.sleep(.5)
         confirm_el = self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-btn css-lked6w ant-btn-primary ant-btn-color-primary ant-btn-variant-solid"]')[1]
         confirm_el.click()
+        await message.answer("Your awb number is: " + awb_actual)
         time.sleep(.5)
-        apply_el.send_keys(Keys.ARROW_UP, Keys.ARROW_UP, Keys.ARROW_UP)
-        await message.answer(self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-descriptions-item-content"]'))
+        self.browser.execute_script("window.scrollTo(100, 100)")
         self.browser.save_screenshot("555-"+awb+".png")
         self.browser.close()
 

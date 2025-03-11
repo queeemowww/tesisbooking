@@ -26,6 +26,5 @@ async def connect_manager(message: types.Message):
             await message.answer_photo(photo=screenshot)
             os.remove("555-"+awb+".png")
         except Exception as e:
-            print(e)
             await message.answer("Something went wrong! Please try your request later")
 
