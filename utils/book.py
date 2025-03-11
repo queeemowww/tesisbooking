@@ -15,9 +15,9 @@ class Booking():
     def __init__(self):
         self.chrome_options = Options()
         self.chrome_options.add_experimental_option("detach", True)
-        self.chrome_options.add_argument('--headless')
-        self.chrome_options.add_argument('--no-sandbox')
-        self.chrome_options.add_argument('--disable-dev-shm-usage')
+        # self.chrome_options.add_argument('--headless')
+        # self.chrome_options.add_argument('--no-sandbox')
+        # self.chrome_options.add_argument('--disable-dev-shm-usage')
         self.browser = webdriver.Chrome(self.chrome_options)
 
     async def book(self, awb, fr = None, to = None, pcs = None, w = None, v = None, cargo = None, flight = None, day = None, month = None, message = None):
@@ -35,12 +35,14 @@ class Booking():
 
         book_el1 = self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-col ant-col-4 css-lked6w"]')
         book_el1.click()
-        time.sleep(2)
+        time.sleep(3)
         await message.answer("Filling up the booking details...")
 
         awb_input_el = self.browser.find_elements(By.TAG_NAME, 'input')[5]
-        awb_input_el.send_keys("555-", awb, Keys.ENTER)
-        awb_actual = self.browser.find_elements(By.TAG_NAME, 'input')[5].text
+        # awb_input_el.send_keys("555-", awb, Keys.ENTER)
+        awb_input_el.send_keys(Keys.ENTER, Keys.ENTER)
+        awb_actual = self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-select-selector"]')[3].text
+        time.sleep(1)
         await message.answer(awb_actual)
         from_input_el = self.browser.find_elements(By.TAG_NAME, 'input')[8]
         from_input_el.send_keys(fr, Keys.ENTER)
