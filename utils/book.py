@@ -25,10 +25,10 @@ class Booking():
         if requests.get(url).status_code != 200:
             return 'The service is not available at the moment. Please try your request later'
         self.browser.get(url)
-        time.sleep(1)
-        self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-space css-lked6w ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"]').click()
-        time.sleep(.1)
-        self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-dropdown-menu-title-content"]')[1].click()
+        # time.sleep(1)
+        # self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-space css-lked6w ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"]').click()
+        # time.sleep(.1)
+        # self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-dropdown-menu-title-content"]')[1].click()
         await message.answer("Authorizing...")
         login_el = self.browser.find_elements(By.TAG_NAME, "input")[0]
         pass_el = self.browser.find_elements(By.TAG_NAME, "input")[1]
