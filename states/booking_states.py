@@ -1,0 +1,30 @@
+from aiogram.filters.state import State, StatesGroup 
+
+class Bk_states(StatesGroup):
+    fr = State()
+    to = State()
+    pcs = State()
+    w = State()
+    v = State()
+    day = State()
+    month = State()
+    flight = State()
+    cargo = State()
+
+class Change_states(StatesGroup):
+    awb = State()
+    fr = State()
+    to = State()
+    pcs = State()
+    w = State()
+    v = State()
+    day = State()
+    month = State()
+    flight = State()
+    cargo = State()
+
+class Cancel_states(StatesGroup):
+    cancel = State()
+
+class Check_states(StatesGroup):
+    check = State()

@@ -54,8 +54,9 @@ class Summary():
             return 'Не удалось найти накладную с номером ' + '<code>' + awb_blank + '-' + awb_num + '</code>'
         
 async def main():
-    tr = Summary(file = 'awbs.xlsx', sheet= "AWB", i = 60, last = 120, delay=3)
+    tr = Summary(file = 'awbs.xlsx', sheet= "AWB", i = 131, last = 145, delay=3)
     while(tr.i <= tr.last):
+        print(tr.i)
         l = await tr.track_led()
         print(l)
     tr.wb.close()

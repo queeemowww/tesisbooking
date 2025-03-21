@@ -33,4 +33,3 @@ async def get_info(s):
             re.findall(rf'{cargo_pattern}', s)[1][1:][:3], re.search(rf'{flight_pattern}', s).group()[2:], re.search(rf'{day_pattern}', s).group()[7:],
             re.search(rf'{month_pattern}', s).group()[9:])
 
-print(asyncio.run(get_info(a)))
