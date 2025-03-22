@@ -10,16 +10,27 @@ load_dotenv()
 
 prev = {}
 
-LOGIN = os.getenv('LOGIN_TR')
-PASS = os.getenv('PASS_TR')
+ADMIN_ID = os.getenv('ADMIN_ID')
+LOGIN_TR = os.getenv('LOGIN_TR')
+PASS_TR = os.getenv('PASS_TR')
+
+LOGIN_CN = os.getenv('LOGIN_CN')
+PASS_CN = os.getenv('PASS_CN')
 
 class Booking():
-    def __init__(self):
+    def __init__(self, country):
+        if country == "TURKEY":
+            self.login = LOGIN_TR
+            self.password = PASS_TR
+        if country == "CHINA":
+            self.login = LOGIN_CN
+            self.password = PASS_CN
+
         self.chrome_options = Options()
         self.chrome_options.add_experimental_option("detach", True)
-        self.chrome_options.add_argument('--headless')
-        self.chrome_options.add_argument('--no-sandbox')
-        self.chrome_options.add_argument('--disable-dev-shm-usage')
+        # self.chrome_options.add_argument('--headless')
+        # self.chrome_options.add_argument('--no-sandbox')
+        # self.chrome_options.add_argument('--disable-dev-shm-usage')
         self.browser = webdriver.Chrome(self.chrome_options)
 
     async def book(self, awb = None, fr = None, to = None, pcs = None, w = None, v = None, cargo = None, flight = None, day = None, month = None, message = None):
@@ -31,8 +42,8 @@ class Booking():
         time.sleep(1.5)
         login_el = self.browser.find_elements(By.TAG_NAME, "input")[0]
         pass_el = self.browser.find_elements(By.TAG_NAME, "input")[1]
-        login_el.send_keys(LOGIN)
-        pass_el.send_keys(PASS, Keys.ENTER)
+        login_el.send_keys(self.login)
+        pass_el.send_keys(self.password, Keys.ENTER)
         time.sleep(1.5)
 
         book_el1 = self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-col ant-col-4 css-lked6w"]')
@@ -89,7 +100,7 @@ class Booking():
         confirm_el.click()
         prev[message.chat.id].delete()
         prev[message.chat.id] = await message.answer("Your awb number is: " + awb_actual)
-        time.sleep(.5)
+        time.sleep(3)
         flight_actual = self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-btn css-lked6w ant-btn-link ant-btn-color-primary ant-btn-variant-link ant-btn-sm ButtonLink__ButtonStyled-eeryZM gvPyWL"]').text
         booking_status = self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-tabs-tabpane ant-tabs-tabpane-active"]')[4].find_elements(By.CSS_SELECTOR, '[class = "ant-col css-lked6w"]')[2].find_elements(By.CSS_SELECTOR, '[class = "ant-descriptions-item-content"]')[0].text
         ffa = f"""FFA/4
@@ -98,6 +109,7 @@ class Booking():
 REF/CHACSSU""".upper()
         prev[message.chat.id].delete()
         await message.answer('<code>' + ffa + '</code>')
+        await message.bot.send_message(chat_id=ADMIN_ID, text = f'{message.chat.full_name}:<code>{ffa}</code>')
         del prev[message.chat.id]
         self.browser.close()
 
@@ -111,8 +123,8 @@ REF/CHACSSU""".upper()
         prev[message.chat.id] = await message.answer("Authorizing...")
         login_el = self.browser.find_elements(By.TAG_NAME, "input")[0]
         pass_el = self.browser.find_elements(By.TAG_NAME, "input")[1]
-        login_el.send_keys(LOGIN)
-        pass_el.send_keys(PASS, Keys.ENTER)
+        login_el.send_keys(self.login)
+        pass_el.send_keys(self.password, Keys.ENTER)
         time.sleep(2)
         self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-picker-clear"]').click()
         time.sleep(3)
@@ -193,6 +205,7 @@ REF/CHACSSU""".upper()
 REF/CHACSSU""".upper()
         prev[message.chat.id].delete()
         await message.answer('<code>' + ffa + '</code>')
+        await message.bot.send_message(chat_id=ADMIN_ID, text = f'{message.chat.full_name}:<code>{ffa}</code>')
         del prev[message.chat.id]
         self.browser.close()
 
@@ -205,8 +218,8 @@ REF/CHACSSU""".upper()
         prev[message.chat.id] = await message.answer("Authorizing...")
         login_el = self.browser.find_elements(By.TAG_NAME, "input")[0]
         pass_el = self.browser.find_elements(By.TAG_NAME, "input")[1]
-        login_el.send_keys(LOGIN)
-        pass_el.send_keys(PASS, Keys.ENTER)
+        login_el.send_keys(self.login)
+        pass_el.send_keys(self.password, Keys.ENTER)
         time.sleep(10)
         self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-picker-clear"]').click()
         time.sleep(5)
@@ -238,8 +251,8 @@ REF/CHACSSU""".upper()
         prev[message.chat.id] = await message.answer("Authorizing...")
         login_el = self.browser.find_elements(By.TAG_NAME, "input")[0]
         pass_el = self.browser.find_elements(By.TAG_NAME, "input")[1]
-        login_el.send_keys(LOGIN)
-        pass_el.send_keys(PASS, Keys.ENTER)
+        login_el.send_keys(self.login)
+        pass_el.send_keys(self.password, Keys.ENTER)
         time.sleep(5)
         self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-picker-clear"]').click()
         time.sleep(3)

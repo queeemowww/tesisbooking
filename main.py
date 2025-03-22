@@ -31,7 +31,7 @@ class Reservation():
             )
 
     async def menu(self):
-        @self.dp.message(StateFilter(None))
+        @self.dp.message(F.text != '/clear', StateFilter(None))
         async def menu(message: types.Message):
             await message.answer(
                 "Please choose an option", reply_markup=menu_builder.as_markup()

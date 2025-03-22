@@ -8,7 +8,7 @@ from aiogram.types.input_file import FSInputFile
 from aiogram.filters import Command, StateFilter
 from states.booking_states import Change_states, Change_states
 import os
-from kb.booking_kb import confirm_builder, menu_builder
+from kb.booking_kb import confirm_builder, menu_builder, country_builder
 import re
 
 router = Router()
@@ -23,6 +23,7 @@ day = {}
 month = {}
 flight = {}
 cargo = {}
+country = {}
 
 awb_pattern = "555-\d{8}"
 
@@ -249,13 +250,46 @@ async def book_26(message: types.Message, state: FSMContext):
 @router.callback_query(F.data == "ch", StateFilter(Change_states.cargo))
 async def book_27(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>FLIGHT</b> (SU2139, FV6532, HZ3232...)')
+    prev[callback.message.chat.id] = await callback.message.answer('<b>CARGO TYPE</b>(SPP, EQUIPMENT...)')
 
 @router.callback_query(F.data == "ok", StateFilter(Change_states.cargo))
+async def book_27_1(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()
+    prev[callback.message.chat.id] = await callback.message.answer('<b>SELECT A COUNTRY</b>', reply_markup=country_builder.as_markup())
+    await state.set_state(Change_states.country)
+
+# @router.callback_query(StateFilter(Change_states.country))
+# async def book_27_2(callback: types.CallbackQuery, state: FSMContext):
+#     await prev[callback.message.chat.id].delete()
+#     del prev[callback.message.chat.id]
+#     country[callback.message.chat.id] = callback.data
+#     await callback.message.answer('COUNTRY: <b> ' + callback.data+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
+#     await callback.message.delete()
+
+@router.callback_query(F.data == "ch", StateFilter(Change_states.country))
+async def book_27_3(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()
+    prev[callback.message.chat.id] = await callback.message.answer('<b>SELECT A COUNTRY</b>', reply_markup=country_builder.as_markup())
+
+
+@router.callback_query(F.data == "CHINA", StateFilter(Change_states.country))
 async def book_28(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
-    bk = Booking()
-    await bk.change(awb=awb[callback.message.chat.id],fr=fr[callback.message.chat.id], to = to[callback.message.chat.id], pcs=pcs[callback.message.chat.id], w=w[callback.message.chat.id], v=v[callback.message.chat.id], day=day[callback.message.chat.id], month=month[callback.message.chat.id], flight=flight[callback.message.chat.id], cargo=cargo[callback.message.chat.id], message=callback.message)
+    bk = Booking(country="CHINA")
+    try:
+        await bk.change(awb=awb[callback.message.chat.id],fr=fr[callback.message.chat.id], to = to[callback.message.chat.id], pcs=pcs[callback.message.chat.id], w=w[callback.message.chat.id], v=v[callback.message.chat.id], day=day[callback.message.chat.id], month=month[callback.message.chat.id], flight=flight[callback.message.chat.id], cargo=cargo[callback.message.chat.id], message=callback.message)
+    except Exception as e:
+        await callback.message.answer(str(e))
+    await state.set_state(None)
+
+@router.callback_query(F.data == "TURKEY", StateFilter(Change_states.country))
+async def book_28_1(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()
+    bk = Booking(country='TURKEY')
+    try:
+        await bk.change(awb=awb[callback.message.chat.id],fr=fr[callback.message.chat.id], to = to[callback.message.chat.id], pcs=pcs[callback.message.chat.id], w=w[callback.message.chat.id], v=v[callback.message.chat.id], day=day[callback.message.chat.id], month=month[callback.message.chat.id], flight=flight[callback.message.chat.id], cargo=cargo[callback.message.chat.id], message=callback.message)
+    except Exception as e:
+        await callback.message.answer(str(e))
     await state.set_state(None)
 
 @router.callback_query(F.data == "cn")

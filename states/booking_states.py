@@ -10,6 +10,7 @@ class Bk_states(StatesGroup):
     month = State()
     flight = State()
     cargo = State()
+    country = State()
 
 class Change_states(StatesGroup):
     awb = State()
@@ -22,9 +23,12 @@ class Change_states(StatesGroup):
     month = State()
     flight = State()
     cargo = State()
+    country = State()
 
 class Cancel_states(StatesGroup):
     cancel = State()
+    country = State()
 
 class Check_states(StatesGroup):
     check = State()
+    country = State()

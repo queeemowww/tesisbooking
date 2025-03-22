@@ -1,6 +1,18 @@
 from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
+country_builder = InlineKeyboardBuilder()
+country_builder.row(types.InlineKeyboardButton(
+    text="Turkey",
+    callback_data="TURKEY"),
+    width = 1
+    )
+country_builder.row(types.InlineKeyboardButton(
+    text="China",
+    callback_data="CHINA"),
+    width = 1
+)
+
 menu_builder = InlineKeyboardBuilder()
 menu_builder.row(types.InlineKeyboardButton(
     text="Book",
