@@ -64,7 +64,7 @@ async def book_04(callback: types.CallbackQuery, state: FSMContext):
     try:
         await bk.check(awb=awb[callback.message.chat.id], message=callback.message)
     except Exception as e:
-        await callback.message.answer(str(e))
+        await callback.message.answer("Something went wrong, plaese try your reqest later")
     await state.set_state(None)
 
 @router.callback_query(F.data == "TURKEY", StateFilter(Check_states.country))
@@ -74,7 +74,7 @@ async def book_05(callback: types.CallbackQuery, state: FSMContext):
     try:
         await bk.check(awb=awb[callback.message.chat.id], message=callback.message)
     except Exception as e:
-        await callback.message.answer(str(e))
+        await callback.message.answer("Something went wrong, plaese try your reqest later")
     await state.set_state(None)
 
 @router.callback_query(F.data == "cn")
