@@ -13,6 +13,7 @@ from aiogram.fsm.context import FSMContext
 import os
 load_dotenv()
 
+
 class Reservation():
     def __init__(self):
         bot_token = os.getenv('BOT_TOKEN')
@@ -26,20 +27,20 @@ class Reservation():
     async def logic(self):
         @self.dp.message(Command("start"))
         async def cmd_start(message: types.Message):
+            await message.delete()
             await message.answer(
                 "Hello, this is an official Tesis cargo booking system. Please send your FFR message here", reply_markup=menu_builder.as_markup()
             )
 
-    async def menu(self):
         @self.dp.message(F.text != '/clear', StateFilter(None))
         async def menu(message: types.Message):
+            await message.delete()
             await message.answer(
                 "Please choose an option", reply_markup=menu_builder.as_markup()
             )
-    
-    async def clear(self):
         @self.dp.message(Command("clear"))
         async def cmd_clear(message: types.Message, state:FSMContext):
+            await message.delete()
             await message.answer(
                 "the context was cleared"
             )

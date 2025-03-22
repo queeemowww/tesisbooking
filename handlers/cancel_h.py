@@ -8,12 +8,16 @@ from aiogram.types.input_file import FSInputFile
 from aiogram.filters import Command, StateFilter
 from states.booking_states import Cancel_states
 import os
+import re
+
 from kb.booking_kb import confirm_builder, menu_builder, country_builder
 router = Router()
 country = {}
 
 prev = {}
 awb = {}
+
+awb_pattern = "^555-\d{8}$"
 
 @router.callback_query(F.data == "cancel", StateFilter(None))
 async def book_01(callback: types.CallbackQuery, state: FSMContext):
@@ -26,9 +30,13 @@ async def book_02(message: types.Message, state: FSMContext):
     await prev[message.chat.id].delete()
     del prev[message.chat.id]
     awb[message.chat.id] = message.text
-    await message.answer('AWB: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
-    await message.delete()
-
+    if re.match(awb_pattern, message.text):
+        await message.answer('AWB: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
+        await message.delete()
+    else:
+        await message.answer('Incorrect AWB format')
+        await message.delete()
+        
 @router.callback_query(F.data == "ch", StateFilter(Cancel_states.cancel))
 async def book_03(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
@@ -60,7 +68,7 @@ async def book_04(callback: types.CallbackQuery, state: FSMContext):
     try:
         await bk.cancel(awb=awb[callback.message.chat.id], message=callback.message)
     except Exception as e:
-        await callback.message.answer(str(e))
+        await callback.message.answer("Something went wrong, plaese try your reqest later")
     await state.set_state(None)
 
 @router.callback_query(F.data == "TURKEY", StateFilter(Cancel_states.country))
@@ -70,7 +78,7 @@ async def book_05(callback: types.CallbackQuery, state: FSMContext):
     try:
         await bk.cancel(awb=awb[callback.message.chat.id], message=callback.message)
     except Exception as e:
-        await callback.message.answer(str(e))
+        await callback.message.answer("Something went wrong, plaese try your reqest later")
     await state.set_state(None)
 
 @router.callback_query(F.data == "cn")

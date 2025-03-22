@@ -25,7 +25,7 @@ flight = {}
 cargo = {}
 country = {}
 
-awb_pattern = "555-\d{8}"
+awb_pattern = "^555-\d{8}$"
 
 @router.callback_query(F.data == "change", StateFilter(None))
 async def book_01(callback: types.CallbackQuery, state: FSMContext):
@@ -60,7 +60,7 @@ async def book_2(message: types.Message, state: FSMContext):
     await prev[message.chat.id].delete()
     del prev[message.chat.id]
     fr[message.chat.id] = message.text
-    if re.match("\w{3}", message.text):
+    if re.match("^\w{3}$", message.text):
         prev[message.chat.id] = await message.answer('FROM: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
         await message.delete()
     else:
@@ -83,7 +83,7 @@ async def book_5(message: types.Message, state: FSMContext):
     await prev[message.chat.id].delete()
     del prev[message.chat.id]
     to[message.chat.id] = message.text
-    if re.match("\w{3}", message.text):
+    if re.match("^\w{3}$", message.text):
         prev[message.chat.id] = await message.answer('TO: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
         await message.delete()
     else:
@@ -106,7 +106,7 @@ async def book_8(message: types.Message, state: FSMContext):
     await prev[message.chat.id].delete()
     del prev[message.chat.id]
     pcs[message.chat.id] = message.text
-    if re.match("\d{1,3}", message.text):
+    if re.match("^\d{1,3}$", message.text):
         prev[message.chat.id] = await message.answer('PIECES: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
         await message.delete()
     else:
@@ -129,7 +129,7 @@ async def book_11(message: types.Message, state: FSMContext):
     await prev[message.chat.id].delete()
     del prev[message.chat.id]
     w[message.chat.id] = message.text
-    if re.match("\d+\.?\d{1,2}?", message.text):
+    if re.match("^\d{1,4}.?\d{1,2}?$", message.text):
         prev[message.chat.id] = await message.answer('WEIGHT: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
         await message.delete()
     else:
@@ -175,7 +175,7 @@ async def book_17(message: types.Message, state: FSMContext):
     await prev[message.chat.id].delete()
     del prev[message.chat.id]
     day[message.chat.id] = message.text
-    if re.match("\d{1,2}", message.text):
+    if re.match("^\d{1,2}$", message.text):
         prev[message.chat.id] = await message.answer('DAY: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
         await message.delete()
     else:
@@ -198,7 +198,7 @@ async def book_20(message: types.Message, state: FSMContext):
     await prev[message.chat.id].delete()
     del prev[message.chat.id]
     month[message.chat.id] = message.text
-    if re.match("\w{3}", message.text):
+    if re.match("^\w{3}$", message.text):
         prev[message.chat.id] = await message.answer('MONTH: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
         await message.delete()
     else:
@@ -221,7 +221,7 @@ async def book_23(message: types.Message, state: FSMContext):
     await prev[message.chat.id].delete()
     del prev[message.chat.id]
     flight[message.chat.id] = message.text
-    if re.match('\w{2}\d{1,4}', message.text):
+    if re.match('^\w{2}\d{1,4}$', message.text):
         prev[message.chat.id] = await message.answer('FLIGHT: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
         await message.delete()
     else:

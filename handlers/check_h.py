@@ -16,6 +16,8 @@ prev = {}
 awb = {}
 country = {}
 
+awb_pattern = "^555-\d{8}$"
+
 @router.callback_query(F.data == "check", StateFilter(None))
 async def book_01(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
@@ -27,7 +29,7 @@ async def book_02(message: types.Message, state: FSMContext):
     await prev[message.chat.id].delete()
     del prev[message.chat.id]
     awb[message.chat.id] = message.text
-    if re.match("555-\d{8}", message.text):
+    if re.match(awb_pattern, message.text):
         await message.answer('AWB: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
         await message.delete()
     else:
