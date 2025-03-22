@@ -31,11 +31,20 @@ class Reservation():
             )
 
     async def menu(self):
-        @self.dp.message(F.text, StateFilter(None))
+        @self.dp.message(StateFilter(None))
         async def menu(message: types.Message):
             await message.answer(
                 "Please choose an option", reply_markup=menu_builder.as_markup()
             )
+    
+    async def clear(self):
+        @self.dp.message(Command("clear"))
+        async def cmd_clear(message: types.Message, state:FSMContext):
+            await message.answer(
+                "the context was cleared"
+            )
+            state.set_state(None)
+            
 
     async def main(self):
         await self.logic()
