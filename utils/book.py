@@ -178,7 +178,7 @@ REF/CHACSSU""".upper()
         prev[message.chat.id] = await message.answer("Searching for new flight...")
         flag = True
         while(flag):
-            time.sleep(.5)
+            time.sleep(1)
             flights_els = self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-table-wrapper TableBookingFlight__TableStyled-gHCKPF ksiLWd css-lked6w"]').find_elements(By.TAG_NAME, "tr")
             for i in range(2, len(flights_els)):
                 if flights_els[i].find_elements(By.TAG_NAME, "td")[2].text[:2] == day and flights_els[i].find_elements(By.TAG_NAME, "td")[3].text.lower() == flight.lower():
@@ -189,9 +189,9 @@ REF/CHACSSU""".upper()
                 self.browser.find_elements(By.CSS_SELECTOR, '[title = "Вперед"]')[0].click()
             except:
                 pass
-        time.sleep(.2)
+        time.sleep(1)
         self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-space css-lked6w ant-space-vertical ant-space-gap-row-small ant-space-gap-col-small FormBookingCargoUpload__SpaceStyled-cnRtNM ejwOjg"]')[0].find_elements(By.TAG_NAME, "button")[0].click()
-        time.sleep(.2)
+        time.sleep(1)
         self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-space css-lked6w ant-space-vertical ant-space-gap-row-small ant-space-gap-col-small FormBookingCargoUpload__SpaceStyled-cnRtNM ejwOjg"]')[0].find_elements(By.TAG_NAME, "button")[3].click()
         booking_status = self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-tabs-tabpane ant-tabs-tabpane-active"]')[4].find_elements(By.CSS_SELECTOR, '[class = "ant-col css-lked6w"]')[2].find_elements(By.CSS_SELECTOR, '[class = "ant-descriptions-item-content"]')[0].text
         prev[message.chat.id].delete()
