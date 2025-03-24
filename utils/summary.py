@@ -21,7 +21,7 @@ class Summary():
         self.browser = webdriver.Chrome(self.chrome_options)
         self.i = i
 
-    async def track_led(self, awb_blank = None, awb_num = None, airport = None):
+    async def track_svo(self, awb_blank = None, awb_num = None, airport = None):
         url = 'https://www.moscow-cargo.com/'
         if requests.get(url).status_code != 200:
             return 'В данный момент трекинг недоступен. Попробуйте позднее'
@@ -54,11 +54,17 @@ class Summary():
             return 'Не удалось найти накладную с номером ' + '<code>' + awb_blank + '-' + awb_num + '</code>'
         
 async def main():
-    tr = Summary(file = 'awbs.xlsx', sheet= "AWB", i = 131, last = 145, delay=3)
+    tr = Summary(file = '/Users/glebkuimov/Desktop/tesis tr/awbs_tr.xlsx', sheet= "AWB", i = 135, last = 157, delay=5)
     while(tr.i <= tr.last):
-        print(tr.i)
-        l = await tr.track_led()
-        print(l)
+        try:
+            print(tr.i)
+            l = await tr.track_svo()
+            print(l)
+            tr.wb.close()
+            tr.wb.save("/Users/glebkuimov/Desktop/tesis tr/awbs_tr.xlsx")
+        except Exception as e:
+            print(e)
+            pass
     tr.wb.close()
-    tr.wb.save("awbs.xlsx")
+    tr.wb.save("/Users/glebkuimov/Desktop/tesis tr/awbs_tr.xlsx")
 asyncio.run(main())

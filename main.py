@@ -6,13 +6,13 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram import F
 from aiogram.enums import ParseMode
 from dotenv import load_dotenv
-from handlers import booking_h, change_h, cancel_h, check_h
+from handlers import booking_h, change_h, cancel_h, check_h, awb_history_h
 from kb.booking_kb import menu_builder
-
+from db import Db
 from aiogram.fsm.context import FSMContext
 import os
+from utils.check_arrival import Arrival
 load_dotenv()
-
 
 class Reservation():
     def __init__(self):
@@ -22,11 +22,14 @@ class Reservation():
                 )
                 )
         self.dp = Dispatcher()
-        self.dp.include_routers(booking_h.router, change_h.router, cancel_h.router, check_h.router)
+        self.dp.include_routers(booking_h.router, change_h.router, cancel_h.router, check_h.router, awb_history_h.router)
+        self.database = Db()
 
     async def logic(self):
         @self.dp.message(Command("start"))
         async def cmd_start(message: types.Message):
+            self.database.insert_user(message.chat.id, message.chat.username, message.chat.first_name, message.chat.last_name)
+            self.database.cursor.close()
             await message.delete()
             await message.answer(
                 "Hello, this is an official Tesis cargo booking system. Please send your FFR message here", reply_markup=menu_builder.as_markup()
@@ -46,9 +49,22 @@ class Reservation():
             )
             state.set_state(None)
             
+    async def check_arrivals(self, delay):
+        while(True):
+            self.arrival = Arrival()
+            try:
+                awbs = self.database.get_not_arrived()
+                for awb in awbs:
+                    arrival_status = await self.arrival.is_arrived(awb[0][:3], awb[0][4:])
+                    self.database.update_awb(awb[0], ['arrival_status', arrival_status])
+            except :
+                pass
+            await asyncio.sleep(delay)
+
 
     async def main(self):
         await self.logic()
+        asyncio.create_task(self.check_arrivals(3600))
         await self.bot.delete_webhook(drop_pending_updates=True)
         await self.dp.start_polling(self.bot)
 

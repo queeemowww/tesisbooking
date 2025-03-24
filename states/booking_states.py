@@ -32,3 +32,6 @@ class Cancel_states(StatesGroup):
 class Check_states(StatesGroup):
     check = State()
     country = State()
+
+class Awb_states(StatesGroup):
+    awb = State()

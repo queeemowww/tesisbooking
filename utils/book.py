@@ -6,8 +6,10 @@ import requests
 import os
 from dotenv import load_dotenv
 import time
+from db import Db
 load_dotenv()
 
+database = Db()
 prev = {}
 
 ADMIN_ID = os.getenv('ADMIN_ID')
@@ -28,9 +30,9 @@ class Booking():
 
         self.chrome_options = Options()
         self.chrome_options.add_experimental_option("detach", True)
-        self.chrome_options.add_argument('--headless')
-        self.chrome_options.add_argument('--no-sandbox')
-        self.chrome_options.add_argument('--disable-dev-shm-usage')
+        # self.chrome_options.add_argument('--headless')
+        # self.chrome_options.add_argument('--no-sandbox')
+        # self.chrome_options.add_argument('--disable-dev-shm-usage')
         self.browser = webdriver.Chrome(self.chrome_options)
 
     async def book(self, awb = None, fr = None, to = None, pcs = None, w = None, v = None, cargo = None, flight = None, day = None, month = None, message = None):
@@ -109,6 +111,7 @@ class Booking():
 REF/CHACSSU""".upper()
         prev[message.chat.id].delete()
         await message.answer('<code>' + ffa + '</code>')
+        database.insert_awb(awb_actual, flight_actual, day+month.upper(), booking_status, 'NO DATA', message.chat.id)
         await message.bot.send_message(chat_id=ADMIN_ID, text = f'{message.chat.full_name}:<code>{ffa}</code>')
         del prev[message.chat.id]
         self.browser.close()
@@ -134,7 +137,7 @@ REF/CHACSSU""".upper()
             if booked_flight == awb:
                 booked_flights_els[i].find_elements(By.TAG_NAME, "td")[2].click()
                 break
-        time.sleep(10)
+        time.sleep(5)
         #старый букинг
         booking_status = self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-tabs-tabpane ant-tabs-tabpane-active"]')[4].find_elements(By.CSS_SELECTOR, '[class = "ant-col css-lked6w"]')[2].find_elements(By.CSS_SELECTOR, '[class = "ant-descriptions-item-content"]')[0].text
         prev[message.chat.id].delete()
@@ -200,11 +203,14 @@ REF/CHACSSU""".upper()
         time.sleep(1)
         flight_actual = self.browser.find_element(By.CSS_SELECTOR, '[class = "ant-btn css-lked6w ant-btn-link ant-btn-color-primary ant-btn-variant-link ant-btn-sm ButtonLink__ButtonStyled-eeryZM gvPyWL"]').text
         ffa = f"""FFA/4
-{awb_actual}{fr}{to}/T{pcs}K{w}MC{v}/{cargo}
+{awb}{fr}{to}/T{pcs}K{w}MC{v}/{cargo}
 {flight_actual}/{day}{month}/{fr}{to}/{booking_status}
 REF/CHACSSU""".upper()
         prev[message.chat.id].delete()
         await message.answer('<code>' + ffa + '</code>')
+        database.update_awb(awb, ['booking_status', booking_status])
+        database.update_awb(awb, ['flight', flight_actual])
+        database.update_awb(awb, ['date', day+month.upper()])
         await message.bot.send_message(chat_id=ADMIN_ID, text = f'{message.chat.full_name}:<code>{ffa}</code>')
         del prev[message.chat.id]
         self.browser.close()
@@ -239,6 +245,7 @@ REF/CHACSSU""".upper()
         time.sleep(1)
         booking_status = self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-tabs-tabpane ant-tabs-tabpane-active"]')[4].find_elements(By.CSS_SELECTOR, '[class = "ant-col css-lked6w"]')[2].find_elements(By.CSS_SELECTOR, '[class = "ant-descriptions-item-content"]')[0].text
         prev[message.chat.id].delete()
+        database.update_awb(awb, ['booking_status', booking_status])
         await message.answer(f"{awb}:  " + '<b>' +  booking_status + '</b>')
         self.browser.close()
 
@@ -266,6 +273,7 @@ REF/CHACSSU""".upper()
         #старый букинг
         booking_status = self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-tabs-tabpane ant-tabs-tabpane-active"]')[4].find_elements(By.CSS_SELECTOR, '[class = "ant-col css-lked6w"]')[2].find_elements(By.CSS_SELECTOR, '[class = "ant-descriptions-item-content"]')[0].text
         prev[message.chat.id].delete()
+        database.update_awb(awb, ['booking_status', booking_status])
         await message.answer(f"{awb}:  " + '<b>' +  booking_status + '</b>')
         self.browser.close()
 
