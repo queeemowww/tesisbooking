@@ -20,7 +20,7 @@ prev = {}
 async def book_1(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     pg[callback.message.chat.id] = 0
-    prev[callback.message.chat.id] = await callback.message.answer('📑', reply_markup=get_awb_history(callback.message.chat.id, pg=pg[callback.message.chat.id]))
+    prev[callback.message.chat.id] = await callback.message.answer('My Airwaybills📑', reply_markup=get_awb_history(callback.message.chat.id, pg=pg[callback.message.chat.id]))
     await state.set_state(Awb_states.awb)
 
 @router.callback_query(F.data == "next_pg", StateFilter(Awb_states.awb))
@@ -34,7 +34,7 @@ async def book_3(callback: types.CallbackQuery, state: FSMContext):
     if pg[callback.message.chat.id] < 0:
         pg[callback.message.chat.id] = 0
     try:
-        await prev[callback.message.chat.id].edit_text('📑', reply_markup=get_awb_history(callback.message.chat.id, pg=pg[callback.message.chat.id]))
+        await prev[callback.message.chat.id].edit_text('My Airwaybills📑', reply_markup=get_awb_history(callback.message.chat.id, pg=pg[callback.message.chat.id]))
     except Exception as e:
         print(e)
         pass

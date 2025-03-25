@@ -12,6 +12,7 @@ from db import Db
 from aiogram.fsm.context import FSMContext
 import os
 from utils.check_arrival import Arrival
+from utils.book import Booking
 load_dotenv()
 
 class Reservation():
@@ -55,8 +56,20 @@ class Reservation():
             try:
                 awbs = self.database.get_not_arrived()
                 for awb in awbs:
-                    arrival_status = await self.arrival.is_arrived(awb[0][:3], awb[0][4:])
+                    arrival_status = await self.arrival.is_arrived(awb[0][:3], awb[0][4:])[0]
                     self.database.update_awb(awb[0], ['arrival_status', arrival_status])
+            except :
+                pass
+            await asyncio.sleep(delay)
+
+    async def check_booking(self, delay):
+        while(True):
+            self.booking = Booking()
+            try:
+                awbs = self.database.get_not_booked()
+                for awb in awbs:
+                    booking_status = await self.booking.check(awb = awb[0], auto=True)[0]
+                    self.database.update_awb(awb[0], ['booking_status', booking_status])
             except :
                 pass
             await asyncio.sleep(delay)
@@ -65,6 +78,7 @@ class Reservation():
     async def main(self):
         await self.logic()
         asyncio.create_task(self.check_arrivals(3600))
+        asyncio.create_task(self.check_booking(3600))
         await self.bot.delete_webhook(drop_pending_updates=True)
         await self.dp.start_polling(self.bot)
 

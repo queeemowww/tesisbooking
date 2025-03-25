@@ -95,3 +95,14 @@ class Db():
         except:
             print('get awb err')
             pass
+    
+    def get_not_booked(self):
+        awbs = []
+        try:
+            self.cursor.execute(f"select awb from awb where booking_status not = 'KK'")
+            for el in self.cursor.fetchall():
+                awbs.append(el)
+            return awbs
+        except:
+            print('get awb err')
+            pass

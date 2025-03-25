@@ -37,6 +37,6 @@ class Arrival():
         info['cw'] = cargo_info[3].find_elements(By.TAG_NAME, "div")[0].find_elements(By.TAG_NAME, "span")[1].text
         info['vol'] = cargo_info[4].text
         self.browser.close()
-        return "ARRIVED: " + info['date']
+        return ("ARRIVED: " + info['date'], 'CW: ' + info['cw'])
 
         

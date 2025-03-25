@@ -20,7 +20,7 @@ LOGIN_CN = os.getenv('LOGIN_CN')
 PASS_CN = os.getenv('PASS_CN')
 
 class Booking():
-    def __init__(self, country):
+    def __init__(self, country = "TURKEY"):
         if country == "TURKEY":
             self.login = LOGIN_TR
             self.password = PASS_TR
@@ -30,9 +30,9 @@ class Booking():
 
         self.chrome_options = Options()
         self.chrome_options.add_experimental_option("detach", True)
-        # self.chrome_options.add_argument('--headless')
-        # self.chrome_options.add_argument('--no-sandbox')
-        # self.chrome_options.add_argument('--disable-dev-shm-usage')
+        self.chrome_options.add_argument('--headless')
+        self.chrome_options.add_argument('--no-sandbox')
+        self.chrome_options.add_argument('--disable-dev-shm-usage')
         self.browser = webdriver.Chrome(self.chrome_options)
 
     async def book(self, awb = None, fr = None, to = None, pcs = None, w = None, v = None, cargo = None, flight = None, day = None, month = None, message = None):
@@ -249,13 +249,14 @@ REF/CHACSSU""".upper()
         await message.answer(f"{awb}:  " + '<b>' +  booking_status + '</b>')
         self.browser.close()
 
-    async def check(self, awb, message):
+    async def check(self, awb, message = None, auto = None):
         url = 'https://afl.booking-cargo.ru/waybills'
         if requests.get(url).status_code != 200:
             return 'The service is not available at the moment. Please try your request later'
         self.browser.get(url)
         time.sleep(1)
-        prev[message.chat.id] = await message.answer("Authorizing...")
+        if not auto:
+            prev[message.chat.id] = await message.answer("Authorizing...")
         login_el = self.browser.find_elements(By.TAG_NAME, "input")[0]
         pass_el = self.browser.find_elements(By.TAG_NAME, "input")[1]
         login_el.send_keys(self.login)
@@ -274,8 +275,10 @@ REF/CHACSSU""".upper()
         booking_status = self.browser.find_elements(By.CSS_SELECTOR, '[class = "ant-tabs-tabpane ant-tabs-tabpane-active"]')[4].find_elements(By.CSS_SELECTOR, '[class = "ant-col css-lked6w"]')[2].find_elements(By.CSS_SELECTOR, '[class = "ant-descriptions-item-content"]')[0].text
         prev[message.chat.id].delete()
         database.update_awb(awb, ['booking_status', booking_status])
-        await message.answer(f"{awb}:  " + '<b>' +  booking_status + '</b>')
+        if not auto:
+            await message.answer(f"{awb}:  " + '<b>' +  booking_status + '</b>')
         self.browser.close()
+        return booking_status
 
 # if __name__ == '__main__':
 #     bk = Booking()
