@@ -277,7 +277,6 @@ REF/CHACSSU""".upper()
         database.update_awb(awb, ['booking_status', booking_status])
         if not auto:
             await message.answer(f"{awb}:  " + '<b>' +  booking_status + '</b>')
-        self.browser.close()
         return booking_status
 
 # if __name__ == '__main__':

@@ -99,7 +99,7 @@ class Db():
     def get_not_booked(self):
         awbs = []
         try:
-            self.cursor.execute(f"select awb from awb where booking_status not = 'KK'")
+            self.cursor.execute(f"select awb from awb where booking_status != 'KK'")
             for el in self.cursor.fetchall():
                 awbs.append(el)
             return awbs

@@ -52,26 +52,29 @@ class Reservation():
             
     async def check_arrivals(self, delay):
         while(True):
-            self.arrival = Arrival()
             try:
                 awbs = self.database.get_not_arrived()
                 for awb in awbs:
+                    self.arrival = Arrival()
                     arrival_status = await self.arrival.is_arrived(awb[0][:3], awb[0][4:])[0]
                     self.database.update_awb(awb[0], ['arrival_status', arrival_status])
-            except :
+                print(f'--------->Checked arrival_status for all awbs, will do it again in {delay} seconds')
+            except Exception as e:
+                print(e)
                 pass
             await asyncio.sleep(delay)
 
     async def check_booking(self, delay):
         while(True):
-            self.booking = Booking()
             try:
                 awbs = self.database.get_not_booked()
                 for awb in awbs:
+                    self.booking = Booking()
                     booking_status = await self.booking.check(awb = awb[0], auto=True)[0]
                     self.database.update_awb(awb[0], ['booking_status', booking_status])
-            except :
-                pass
+                print(f'--------->Checked booking_status for all awbs, will do it again in {delay} seconds')
+            except Exception as e:
+                print(e)
             await asyncio.sleep(delay)
 
 
