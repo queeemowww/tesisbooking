@@ -1,9 +1,9 @@
 from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from db import Db
+from utils.book import Booking
 
 database = Db()
-
 
 country_builder = InlineKeyboardBuilder()
 country_builder.row(types.InlineKeyboardButton(
@@ -63,7 +63,7 @@ confirm_builder.row(types.InlineKeyboardButton(
     width = 1
     )
 
-def get_awb_history(user_id, pg):
+async def get_awb_history(user_id, pg):
     history_builder = InlineKeyboardBuilder()
     next_btn = types.InlineKeyboardButton(
             text = '➡️',
@@ -94,7 +94,7 @@ def get_awb_history(user_id, pg):
     
     return history_builder.as_markup()
 
-def get_info(awb, user_id):
+async def get_info(awb, user_id):
     awb_info_builder = InlineKeyboardBuilder()
     close_btn = types.InlineKeyboardButton(
             text = '❌',
@@ -115,3 +115,17 @@ def get_info(awb, user_id):
     awb_info_builder.row(arrival_btn)
     awb_info_builder.row(close_btn)
     return awb_info_builder.as_markup()
+
+async def get_flights(fr, to, day, month, aircrafts = ['73H', '77W']):
+    bk = Booking()
+    flights = await bk.available_flghts(fr, to, day, month, aircrafts)
+    flights_builder = InlineKeyboardBuilder()
+    close_btn = types.InlineKeyboardButton(
+            text = '❌',
+            callback_data='prev_pg')
+    for f in flights:
+        flights_builder.add(types.InlineKeyboardButton(
+            text = f'{f[0]}/{f[2]}: {f[1]}',
+            callback_data=f'{f[0]}/{f[2]}'))
+    
+    return flights_builder.as_markup()

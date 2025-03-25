@@ -13,6 +13,7 @@ class Db():
         self.cursor = self.conn.cursor()
         self.create_users()
         self.create_awb()
+        self.create_available_flights()
 
     def create_users(self):
         self.cursor.execute("""create table if not exists customers(
@@ -36,11 +37,21 @@ class Db():
                             );
                             """)
     
+    def create_available_flights(self):
+        self.cursor.execute("""create table if not exists available_flights(
+                    id serial primary key,
+                    updated varchar not null,
+                    flight varchar(6) not null,
+                    fr varchar(3) not null,
+                    dest varchar(3) not null,
+                    date varchar not null,
+                    status varchar not null
+                            );
+                            """)
 
         # self.cursor.execute("insert into users (user_id, username) values ('Tom', 33);")
         # self.cursor.execute('select * from users;')
         # print(self.cursor.fetchall())
-    
     
     def insert_user(self, user_id, username, first_name, last_name):
         try:
@@ -59,10 +70,19 @@ class Db():
     def update_awb(self, awb, upd_val):
         try:
             self.cursor.execute(f"update awb set {upd_val[0]} = '{upd_val[1]}' where awb = '{awb}';")
-            print("update")
         except:
             pass
     
+    def ins_upd_available_flight(self, updated, flight, fr, to, date, status):
+        try:
+            self.cursor.execute(f"insert into available_flights (updated, flight, fr, dest, date, status) values ('{updated}', '{flight}', '{fr}', '{to}', '{date}', '{status}');")
+            print('insert')
+        except:
+            self.cursor.execute(f"update available_flights set date = '{date}' where flight = '{flight}';")
+            self.cursor.execute(f"update available_flights set status = '{status}' where flight = '{flight}';")
+            self.cursor.execute(f"update available_flights set updated = '{updated}' where flight = '{flight}';")
+            print("update")
+
     def get_awbs(self, val, user_id):
         awbs = []
         try:
@@ -103,6 +123,17 @@ class Db():
             for el in self.cursor.fetchall():
                 awbs.append(el)
             return awbs
+        except:
+            print('get awb err')
+            pass
+    
+    def get_available_flights(self, date, fr, to):
+        available_flights = []
+        try:
+            self.cursor.execute(f"select flight, status from available_flights where date = '{date}' and fr = {fr} and dest = '{to}")
+            for el in self.cursor.fetchall():
+                available_flights.append(el)
+            return available_flights
         except:
             print('get awb err')
             pass

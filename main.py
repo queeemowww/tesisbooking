@@ -13,6 +13,7 @@ from aiogram.fsm.context import FSMContext
 import os
 from utils.check_arrival import Arrival
 from utils.book import Booking
+import datetime
 load_dotenv()
 
 class Reservation():
@@ -77,9 +78,26 @@ class Reservation():
                 print(e)
             await asyncio.sleep(delay)
 
+    async def check_available_flights(self, delay):
+        """db new table + check every day new fligths"""
+        while(True):
+            today = datetime.date.today()
+            try:
+                self.booking = Booking()
+                for i in range(11):
+                    tomorrow = today + datetime.timedelta(i)
+                    available_flights = await self.booking.available_flghts('IST', 'SVO', str(tomorrow)[-2:], 'ND')
+                    print(available_flights)
+                    for f in available_flights:
+                        self.database.ins_upd_available_flight(str(datetime.datetime.now()), f[0], 'IST', 'SVO', f[2], f[1])
+                print(f'--------->Renewed the available flights for all awbs, will do it again in {delay} seconds')
+            except Exception as e:
+                print(e)
+            await asyncio.sleep(delay)
 
     async def main(self):
         await self.logic()
+        asyncio.create_task(self.check_available_flights(3600))
         asyncio.create_task(self.check_arrivals(3600))
         asyncio.create_task(self.check_booking(3600))
         await self.bot.delete_webhook(drop_pending_updates=True)

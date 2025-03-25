@@ -20,13 +20,13 @@ prev = {}
 async def book_1(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     pg[callback.message.chat.id] = 0
-    prev[callback.message.chat.id] = await callback.message.answer('My Airwaybills📑', reply_markup=get_awb_history(callback.message.chat.id, pg=pg[callback.message.chat.id]))
+    prev[callback.message.chat.id] = await callback.message.answer('My Airwaybills📑', reply_markup=await get_awb_history(callback.message.chat.id, pg=pg[callback.message.chat.id]))
     await state.set_state(Awb_states.awb)
 
 @router.callback_query(F.data == "next_pg", StateFilter(Awb_states.awb))
 async def book_2(callback: types.CallbackQuery, state: FSMContext):
     pg[callback.message.chat.id] += 1
-    await prev[callback.message.chat.id].edit_reply_markup(reply_markup=get_awb_history(callback.message.chat.id, pg=pg[callback.message.chat.id]))
+    await prev[callback.message.chat.id].edit_reply_markup(reply_markup=await get_awb_history(callback.message.chat.id, pg=pg[callback.message.chat.id]))
 
 @router.callback_query(F.data == "prev_pg", StateFilter(Awb_states.awb))
 async def book_3(callback: types.CallbackQuery, state: FSMContext):
@@ -34,7 +34,7 @@ async def book_3(callback: types.CallbackQuery, state: FSMContext):
     if pg[callback.message.chat.id] < 0:
         pg[callback.message.chat.id] = 0
     try:
-        await prev[callback.message.chat.id].edit_text('My Airwaybills📑', reply_markup=get_awb_history(callback.message.chat.id, pg=pg[callback.message.chat.id]))
+        await prev[callback.message.chat.id].edit_text('My Airwaybills📑', reply_markup= await get_awb_history(callback.message.chat.id, pg=pg[callback.message.chat.id]))
     except Exception as e:
         print(e)
         pass
@@ -42,7 +42,7 @@ async def book_3(callback: types.CallbackQuery, state: FSMContext):
 @router.callback_query(F.data != 'close', StateFilter(Awb_states.awb))
 async def book_4(callback: types.CallbackQuery, state: FSMContext):
     pg[callback.message.chat.id] += 1
-    await prev[callback.message.chat.id].edit_text("<code>"+callback.data+'📄</code>', reply_markup=get_info(callback.data, callback.message.chat.id))
+    await prev[callback.message.chat.id].edit_text("<code>"+callback.data+'📄</code>', reply_markup= await get_info(callback.data, callback.message.chat.id))
 
 
 @router.callback_query(F.data == 'close', StateFilter(Awb_states.awb))

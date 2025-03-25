@@ -129,7 +129,7 @@ async def book_11(message: types.Message, state: FSMContext):
     await prev[message.chat.id].delete()
     del prev[message.chat.id]
     w[message.chat.id] = message.text
-    if re.match("^\d{1,4}.?\d{1,2}?$", message.text):
+    if re.match("^\d{1,4}\.?\d{1,2}?$", message.text):
         prev[message.chat.id] = await message.answer('WEIGHT: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
         await message.delete()
     else:
