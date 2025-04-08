@@ -25,7 +25,7 @@ class Booking:
 
     async def launch_browser(self):
         playwright = await async_playwright().start()
-        self.browser = await playwright.chromium.launch(headless=True)
+        self.browser = await playwright.chromium.launch(headless=False)
         self.page = await self.browser.new_page()
 
     async def close_browser(self):
@@ -350,8 +350,9 @@ REF/CHACSSU""".upper()
             status_el = await self.page.query_selector_all('[class = "ant-descriptions-item-content"]')
             status = await status_el[20].inner_text()
         finally:
-            await prev[message.chat.id].delete()
-            del prev[message.chat.id]
+            if message:
+                await prev[message.chat.id].delete()
+                del prev[message.chat.id]
             await self.close_browser()
         return {
             "awb": awb_num,
@@ -363,10 +364,10 @@ REF/CHACSSU""".upper()
 REF/CHACSSU""".upper()
         }
 
-# if __name__ == '__main__':
-#     bk = Booking()
+if __name__ == '__main__':
+    bk = Booking()
     # print(asyncio.run(bk.check('555-10217760')))
     # print(asyncio.run(bk.cancel('555-10217760')))
     # print(asyncio.run(bk.available_flights('ist', "svo", '29', 'mar')))
     # print(asyncio.run(bk.change(awb='555-10217760', fr = 'ist', to='svo', cargo='SPP', flight='SU2137', day='10', month='apr')))
-    # print(asyncio.run(bk.book('', 'ist', 'svo', '1', '1', '0.01', 'SPP', 'SU2139', '10', 'apr')))
+    print(asyncio.run(bk.book('ist', 'svo', '1', '1', '0.01', 'SPP', 'SU2139', '14', 'apr')))
