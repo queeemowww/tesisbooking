@@ -364,10 +364,10 @@ REF/CHACSSU""".upper()
 REF/CHACSSU""".upper()
         }
 
-if __name__ == '__main__':
-    bk = Booking()
-    # print(asyncio.run(bk.check('555-10217760')))
-    # print(asyncio.run(bk.cancel('555-10217760')))
-    # print(asyncio.run(bk.available_flights('ist', "svo", '29', 'mar')))
-    # print(asyncio.run(bk.change(awb='555-10217760', fr = 'ist', to='svo', cargo='SPP', flight='SU2137', day='10', month='apr')))
-    print(asyncio.run(bk.book('ist', 'svo', '1', '1', '0.01', 'SPP', 'SU2139', '14', 'apr')))
+# if __name__ == '__main__':
+#     bk = Booking()
+#     # print(asyncio.run(bk.check('555-10217760')))
+#     # print(asyncio.run(bk.cancel('555-10217760')))
+#     # print(asyncio.run(bk.available_flights('ist', "svo", '29', 'mar')))
+#     # print(asyncio.run(bk.change(awb='555-10217760', fr = 'ist', to='svo', cargo='SPP', flight='SU2137', day='10', month='apr')))
+#     print(asyncio.run(bk.book('ist', 'svo', '1', '1', '0.01', 'SPP', 'SU2139', '14', 'apr')))
