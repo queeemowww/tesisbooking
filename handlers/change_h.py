@@ -8,22 +8,16 @@ from aiogram.types.input_file import FSInputFile
 from aiogram.filters import Command, StateFilter
 from states.booking_states import Change_states, Change_states
 import os
-from kb.booking_kb import confirm_builder, menu_builder, country_builder
+from kb.booking_kb import confirm_builder, menu_builder, country_builder, get_change_awb, get_flights
 import re
+from database.db_provider import get_db
+import asyncio
 
 router = Router()
 prev = {}
 awb = {}
-fr = {}
-to = {}
-pcs = {}
-w = {}
-v = {}
-day = {}
-month = {}
-flight = {}
-cargo = {}
-country = {}
+change_val = {}
+pg = {}
 
 awb_pattern = "^555-\d{8}$"
 
@@ -46,254 +40,115 @@ async def book_02(message: types.Message, state: FSMContext):
         await message.delete()
 @router.callback_query(F.data == "ch", StateFilter(Change_states.awb))
 async def book_03(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
+    await prev[callback.message.chat.id].delete()
     prev[callback.message.chat.id] = await callback.message.answer('<b>AWB</b> 11 digits separated with -)')
 
 @router.callback_query(F.data == "ok", StateFilter(Change_states.awb))
 async def book_04(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>FROM</b> (3 LETTERS, IST, PEK, ICN...)')
-    await state.set_state(Change_states.fr)
+    await prev[callback.message.chat.id].delete()
+    prev[callback.message.chat.id] = await callback.message.answer('Choose an option to change for <b>' + awb[callback.message.chat.id]+'</b>', reply_markup= await get_change_awb(awb[callback.message.chat.id], callback.message.chat.id))
+    await state.set_state(Change_states.change)
 
-@router.message(StateFilter(Change_states.fr))
-async def book_2(message: types.Message, state: FSMContext):
-    await prev[message.chat.id].delete()
-    del prev[message.chat.id]
-    fr[message.chat.id] = message.text
-    if re.match("^\w{3}$", message.text):
-        prev[message.chat.id] = await message.answer('FROM: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
-        await message.delete()
+@router.callback_query(F.data != 'ok', F.data != 'ch', F.data != 'close', F.data != 'go', StateFilter(Change_states.change))
+async def book_05(callback: types.CallbackQuery, state: FSMContext):
+    db = get_db()
+    await prev[callback.message.chat.id].delete()
+    #выбрать рейс из инлайн меню если меняется рейс
+    dep = await db.get_awb_info('departure', awb=awb[callback.message.chat.id], user_id= callback.message.chat.id)
+    dest = await db.get_awb_info('destination', awb=awb[callback.message.chat.id], user_id= callback.message.chat.id)
+    date = await db.get_awb_info('date', awb=awb[callback.message.chat.id], user_id= callback.message.chat.id)
+
+    if callback.data == 'flight':
+        prev[callback.message.chat.id] = await callback.message.answer(f'Pick a flight from the list below', 
+                                                                       reply_markup=await get_flights(departure= dep,
+                                                                                                      destination=dest,
+                                                                                                      date=date
+                                                                                                     )
+                                                                        )
+        
+        print('here')
+        await state.set_state(Change_states.flight)
     else:
-        prev[message.chat.id] = await message.answer("Incorrect departure format")
-        await message.delete()
+        prev[callback.message.chat.id] = await callback.message.answer(f'Set new value for <b>{callback.data}</b>')
+    change_val[callback.message.chat.id] = callback.data
 
-@router.callback_query(F.data == "ch", StateFilter(Change_states.fr))
-async def book_3(callback: types.CallbackQuery, state: FSMContext):
+@router.callback_query(StateFilter(Change_states.flight), F.data != 'prev_pg')
+async def book_061(callback: types.CallbackQuery, state: FSMContext):
+    db = get_db()
     await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>FROM</b> (3 LETTERS, IST, PEK, ICN...)')
+    prev[callback.message.chat.id] = await callback.message.answer(f'<b>{change_val[callback.message.chat.id]}: {callback.data}</b>', reply_markup=confirm_builder.as_markup())
+    await db.update_awb(awb[callback.message.chat.id], (change_val[callback.message.chat.id], callback.data))
+    await state.set_state(Change_states.change)
 
-@router.callback_query(F.data == "ok", StateFilter(Change_states.fr))
-async def book_4(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>TO</b> (3 LETTERS, IST, PEK, ICN...)')
-    await state.set_state(Change_states.to)
+@router.callback_query(StateFilter(Change_states.flight), F.data == 'prev_pg')
+async def book_062(callback: types.CallbackQuery, state: FSMContext):
+    db = get_db()
+    await prev[callback.message.chat.id].delete()
+    prev[callback.message.chat.id] = await callback.message.answer('Choose an option to change for <b>' + awb[callback.message.chat.id]+'</b>', reply_markup= await get_change_awb(awb[callback.message.chat.id], callback.message.chat.id))
+    await state.set_state(Change_states.change)
 
-@router.message(StateFilter(Change_states.to))
-async def book_5(message: types.Message, state: FSMContext):
+@router.message(StateFilter(Change_states.change))
+async def book_06(message: types.Message, state: FSMContext):
+    db = get_db()
     await prev[message.chat.id].delete()
-    del prev[message.chat.id]
-    to[message.chat.id] = message.text
-    if re.match("^\w{3}$", message.text):
-        prev[message.chat.id] = await message.answer('TO: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
-        await message.delete()
-    else:
-        prev[message.chat.id] = await message.answer("Incorrect destination format")
-        await message.delete()
-
-@router.callback_query(F.data == "ch", StateFilter(Change_states.to))
-async def book_6(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>TO</b>(3 LETTERS, IST, PEK, ICN...)')
-
-@router.callback_query(F.data == "ok", StateFilter(Change_states.to))
-async def book_7(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>PIECES</b>')
-    await state.set_state(Change_states.pcs)
-
-@router.message(StateFilter(Change_states.pcs))
-async def book_8(message: types.Message, state: FSMContext):
-    await prev[message.chat.id].delete()
-    del prev[message.chat.id]
-    pcs[message.chat.id] = message.text
-    if re.match("^\d{1,3}$", message.text):
-        prev[message.chat.id] = await message.answer('PIECES: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
-        await message.delete()
-    else:
-        prev[message.chat.id] = await message.answer('Incorrect pieces format')
-        await message.delete()
-
-@router.callback_query(F.data == "ch", StateFilter(Change_states.pcs))
-async def book_9(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>PIECES</b>')
-
-@router.callback_query(F.data == "ok", StateFilter(Change_states.pcs))
-async def book_10(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>WEIGHT</b>')
-    await state.set_state(Change_states.w)
-
-@router.message(StateFilter(Change_states.w))
-async def book_11(message: types.Message, state: FSMContext):
-    await prev[message.chat.id].delete()
-    del prev[message.chat.id]
-    w[message.chat.id] = message.text
-    if re.match("^\d{1,4}\.?\d{1,2}?$", message.text):
-        prev[message.chat.id] = await message.answer('WEIGHT: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
-        await message.delete()
-    else:
-        prev[message.chat.id] = await message.answer('Incorrect weight format')
-        await message.delete()
-
-@router.callback_query(F.data == "ch", StateFilter(Change_states.w))
-async def book_12(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>WEIGHT</b>')
-
-@router.callback_query(F.data == "ok", StateFilter(Change_states.w))
-async def book_13(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>VOLUME</b>')
-    await state.set_state(Change_states.v)
-
-@router.message(StateFilter(Change_states.v))
-async def book_14(message: types.Message, state: FSMContext):
-    await prev[message.chat.id].delete()
-    del prev[message.chat.id]
-    v[message.chat.id] = message.text
-    if re.match("\d+\.?\d{1,2}?", message.text):
-        prev[message.chat.id] = await message.answer('VOLUME: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
-        await message.delete()
-    else:
-        prev[message.chat.id] = await message.answer('Incorrect volume format')
-        await message.delete()
-
-@router.callback_query(F.data == "ch", StateFilter(Change_states.v))
-async def book_15(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>VOLUME</b>')
-
-@router.callback_query(F.data == "ok", StateFilter(Change_states.v))
-async def book_16(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>DAY</b> (2 DIGITS 04, 21, 17...)')
-    await state.set_state(Change_states.day)
-
-@router.message(StateFilter(Change_states.day))
-async def book_17(message: types.Message, state: FSMContext):
-    await prev[message.chat.id].delete()
-    del prev[message.chat.id]
-    day[message.chat.id] = message.text
-    if re.match("^\d{1,2}$", message.text):
-        prev[message.chat.id] = await message.answer('DAY: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
-        await message.delete()
-    else:
-        prev[message.chat.id] = await message.answer('Incorrect day format')
-        await message.delete()
-
-@router.callback_query(F.data == "ch", StateFilter(Change_states.day))
-async def book_18(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>DAY</b> (2 DIGITS 04, 21, 17...)')
-
-@router.callback_query(F.data == "ok", StateFilter(Change_states.day))
-async def book_19(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>MONTH</b> (3 CHARACTERS MAR, OCT, FEB...)')
-    await state.set_state(Change_states.month)
-
-@router.message(StateFilter(Change_states.month))
-async def book_20(message: types.Message, state: FSMContext):
-    await prev[message.chat.id].delete()
-    del prev[message.chat.id]
-    month[message.chat.id] = message.text
-    if re.match("^\w{3}$", message.text):
-        prev[message.chat.id] = await message.answer('MONTH: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
-        await message.delete()
-    else:
-        prev[message.chat.id] = await message.answer('Incorrect month format')
-        await message.delete()
-
-@router.callback_query(F.data == "ch", StateFilter(Change_states.month))
-async def book_21(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>MONTH</b> (3 CHARACTERS MAR, OCT, FEB...)')
-
-@router.callback_query(F.data == "ok", StateFilter(Change_states.month))
-async def book_22(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>FLIGHT</b> (SU2139, FV6532, HZ3232...)')
-    await state.set_state(Change_states.flight)
-
-@router.message(StateFilter(Change_states.flight))
-async def book_23(message: types.Message, state: FSMContext):
-    await prev[message.chat.id].delete()
-    del prev[message.chat.id]
-    flight[message.chat.id] = message.text
-    if re.match('^\w{2}\d{1,4}$', message.text):
-        prev[message.chat.id] = await message.answer('FLIGHT: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
-        await message.delete()
-    else:
-        prev[message.chat.id] = await message.answer('incorrect flight format')
-        await message.delete()
-
-@router.callback_query(F.data == "ch", StateFilter(Change_states.flight))
-async def book_24(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>FLIGHT</b> (SU2139, FV6532, HZ3232...)')
-
-@router.callback_query(F.data == "ok", StateFilter(Change_states.flight))
-async def book_25(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>CARGO TYPE</b>(SPP, EQUIPMENT...)')
-    await state.set_state(Change_states.cargo)
-
-@router.message(StateFilter(Change_states.cargo))
-async def book_26(message: types.Message, state: FSMContext):
-    await prev[message.chat.id].delete()
-    del prev[message.chat.id]
-    cargo[message.chat.id] = message.text
-    await message.answer('CARGO: <b> ' + message.text+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
     await message.delete()
+    if await is_correct(change_val[message.chat.id], message.text):
+        prev[message.chat.id] = await message.answer(f'<b>{change_val[message.chat.id]}: {message.text}</b>', reply_markup=confirm_builder.as_markup())
+        await db.update_awb(awb[message.chat.id], (change_val[message.chat.id], message.text))
+    else:
+        prev[message.chat.id] = await message.answer(f'Incorrect <b>{change_val[message.chat.id]}</b> format')
 
-@router.callback_query(F.data == "ch", StateFilter(Change_states.cargo))
-async def book_27(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>CARGO TYPE</b>(SPP, EQUIPMENT...)')
+@router.callback_query(F.data == "ok", StateFilter(Change_states.change))
+async def book_07(callback: types.CallbackQuery, state: FSMContext):
+    await prev[callback.message.chat.id].delete()
+    prev[callback.message.chat.id] = await callback.message.answer('Choose an option to change for <b>' + awb[callback.message.chat.id]+'</b>', reply_markup= await get_change_awb(awb[callback.message.chat.id], callback.message.chat.id))
+    await state.set_state(Change_states.change)
 
-@router.callback_query(F.data == "ok", StateFilter(Change_states.cargo))
-async def book_27_1(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>SELECT A COUNTRY</b>', reply_markup=country_builder.as_markup())
-    await state.set_state(Change_states.country)
-
-# @router.callback_query(StateFilter(Change_states.country))
-# async def book_27_2(callback: types.CallbackQuery, state: FSMContext):
-#     await prev[callback.message.chat.id].delete()
-#     del prev[callback.message.chat.id]
-#     country[callback.message.chat.id] = callback.data
-#     await callback.message.answer('COUNTRY: <b> ' + callback.data+ "</b>", reply_markup=confirm_builder.as_markup(), parse_mode=ParseMode.HTML)
-#     await callback.message.delete()
-
-@router.callback_query(F.data == "ch", StateFilter(Change_states.country))
-async def book_27_3(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('<b>SELECT A COUNTRY</b>', reply_markup=country_builder.as_markup())
-
-
-@router.callback_query(F.data == "CHINA", StateFilter(Change_states.country))
-async def book_28(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    bk = Booking(country="CHINA")
-    try:
-        await bk.change(awb=awb[callback.message.chat.id],fr=fr[callback.message.chat.id], to = to[callback.message.chat.id], pcs=pcs[callback.message.chat.id], w=w[callback.message.chat.id], v=v[callback.message.chat.id], day=day[callback.message.chat.id], month=month[callback.message.chat.id], flight=flight[callback.message.chat.id], cargo=cargo[callback.message.chat.id], message=callback.message)
-    except Exception as e:
-        await callback.message.answer("Something went wrong, plaese try your reqest later")
+@router.callback_query(F.data == "go", StateFilter(Change_states.change))
+async def book_08(callback: types.CallbackQuery, state: FSMContext):
+    db = get_db()
+    book = Booking()
+    await prev[callback.message.chat.id].delete()
+    result = await book.change(awb = awb[callback.message.chat.id], 
+                      fr = await db.get_awb_info('departure', awb[callback.message.chat.id], callback.message.chat.id),
+                      to = await db.get_awb_info('destination', awb[callback.message.chat.id], callback.message.chat.id),
+                      pcs = await db.get_awb_info('pieces', awb[callback.message.chat.id], callback.message.chat.id),
+                      w = await db.get_awb_info('weight', awb[callback.message.chat.id], callback.message.chat.id),
+                      v = await db.get_awb_info('volume', awb[callback.message.chat.id], callback.message.chat.id),
+                      cargo = await db.get_awb_info('cargo', awb[callback.message.chat.id], callback.message.chat.id),
+                      flight = await db.get_awb_info('flight', awb[callback.message.chat.id], callback.message.chat.id),
+                      day = await db.get_awb_info('date', awb[callback.message.chat.id], callback.message.chat.id),
+                      month = await db.get_awb_info('date', awb[callback.message.chat.id], callback.message.chat.id),
+                      message = callback.message
+                      )
+    await callback.message.answer(result['ffa'], reply_markup = menu_builder.as_markup())
     await state.set_state(None)
 
-@router.callback_query(F.data == "TURKEY", StateFilter(Change_states.country))
-async def book_28_1(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    bk = Booking(country='TURKEY')
-# try:
-    await bk.change(awb=awb[callback.message.chat.id],fr=fr[callback.message.chat.id], to = to[callback.message.chat.id], pcs=pcs[callback.message.chat.id], w=w[callback.message.chat.id], v=v[callback.message.chat.id], day=day[callback.message.chat.id], month=month[callback.message.chat.id], flight=flight[callback.message.chat.id], cargo=cargo[callback.message.chat.id], message=callback.message)
-# except Exception as e:
-#     await callback.message.answer("Something went wrong, plaese try your reqest later")
-    await state.set_state(None)
 
 @router.callback_query(F.data == "cn")
 async def book_cn(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    prev[callback.message.chat.id] = await callback.message.answer('cancelled', reply_markup=menu_builder.as_markup())
+    prev[callback.message.chat.id] = await callback.message.answer('Choose an option to change for <b>' + awb[callback.message.chat.id]+'</b>', reply_markup= await get_change_awb(awb[callback.message.chat.id], callback.message.chat.id))
     await state.set_state(None)
+
+@router.callback_query(F.data == "close")
+async def book_close(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()
+    prev[callback.message.chat.id] = await callback.message.answer("Please choose an option in the bottom menu", reply_markup=menu_builder.as_markup())
+    await state.set_state(None)
+
+async def is_correct(name, value):
+    patterns = {
+        'awb': "",
+        'pieces': "^\d{1,3}$",
+        'weight': "^\d{1,5}\.?\d{1,2}?$",
+        'volume': "^\d{1,2}.?\d{1,2}?$",
+        'departure': "^\w{3}$",
+        'destination': "^\w{3}$",
+        'flight': "^\w{2}\d{1,4}$",
+        'date': "^\d{2}\w{3}$",
+        'cargo': "^.+$"
+    }
+
+    if not re.match(patterns[name], value):
+        return False
+    return True

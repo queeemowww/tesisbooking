@@ -14,17 +14,9 @@ class Bk_states(StatesGroup):
 
 class Change_states(StatesGroup):
     awb = State()
-    fr = State()
-    to = State()
-    pcs = State()
-    w = State()
-    v = State()
-    day = State()
-    month = State()
+    change = State()
     flight = State()
-    cargo = State()
-    country = State()
-
+    
 class Cancel_states(StatesGroup):
     cancel = State()
     country = State()

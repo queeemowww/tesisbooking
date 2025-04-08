@@ -1,9 +1,7 @@
 from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
-from db import Db
+from database.db_provider import get_db
 from utils.book import Booking
-
-database = Db()
 
 country_builder = InlineKeyboardBuilder()
 country_builder.row(types.InlineKeyboardButton(
@@ -64,6 +62,7 @@ confirm_builder.row(types.InlineKeyboardButton(
     )
 
 async def get_awb_history(user_id, pg):
+    database = get_db()
     history_builder = InlineKeyboardBuilder()
     next_btn = types.InlineKeyboardButton(
             text = '➡️',
@@ -77,13 +76,14 @@ async def get_awb_history(user_id, pg):
 
     k = 1
     btn = []
-    awbs = database.get_awbs('awb', user_id)
+    awbs = await database.get_awbs('awb', user_id)
+
     for i in range(pg * 10, len(awbs)):
         if len(btn) > 10:
             break
         btn.append(types.InlineKeyboardButton(
-            text = awbs[i][0],
-            callback_data=awbs[i][0])
+            text = awbs[i],
+            callback_data=awbs[i])
         )
         if k == len(awbs):
             history_builder.row(btn[-1])
@@ -95,20 +95,21 @@ async def get_awb_history(user_id, pg):
     return history_builder.as_markup()
 
 async def get_info(awb, user_id):
+    database = get_db()
     awb_info_builder = InlineKeyboardBuilder()
     close_btn = types.InlineKeyboardButton(
             text = '❌',
             callback_data='prev_pg')
-    flight = database.get_awb_info('flight', awb, user_id)
-    date = database.get_awb_info('date', awb, user_id)
-    booking_status = database.get_awb_info('booking_status', awb, user_id)
-    arrival_status = database.get_awb_info('arrival_status', awb, user_id)
+    flight = await database.get_awb_info('flight', awb, user_id)
+    date = await database.get_awb_info('date', awb, user_id)
+    booking_status = await database.get_awb_info('booking_status', awb, user_id)
+    arrival_status = await database.get_awb_info('arrival_status', awb, user_id)
     flight_btn = types.InlineKeyboardButton(
-            text = f"{flight[0][0]}/{date[0][0]}: {booking_status[0][0]}",
+            text = f"{flight}/{date}: {booking_status}",
             callback_data='1')
 
     arrival_btn = types.InlineKeyboardButton(
-            text = f'{arrival_status[0][0]}',
+            text = f'{arrival_status}',
             callback_data='2')
     
     awb_info_builder.row(flight_btn)
@@ -116,16 +117,111 @@ async def get_info(awb, user_id):
     awb_info_builder.row(close_btn)
     return awb_info_builder.as_markup()
 
-async def get_flights(fr, to, day, month, aircrafts = ['73H', '77W']):
-    bk = Booking()
-    flights = await bk.available_flghts(fr, to, day, month, aircrafts)
+async def get_flights(departure, destination, date, aircrafts = ['73H', '77W'], pg = 0):
+    database = get_db()
+    flights = await database.get_available_flights(date, departure, destination)
     flights_builder = InlineKeyboardBuilder()
     close_btn = types.InlineKeyboardButton(
             text = '❌',
             callback_data='prev_pg')
-    for f in flights:
-        flights_builder.add(types.InlineKeyboardButton(
-            text = f'{f[0]}/{f[2]}: {f[1]}',
-            callback_data=f'{f[0]}/{f[2]}'))
+    next_btn = types.InlineKeyboardButton(
+            text = '➡️',
+            callback_data='next_pg')
+    prev_btn = types.InlineKeyboardButton(
+            text = '⬅️',
+            callback_data='prev_pg')
+    btn = []
+    k = 1
+    for i in range(pg * 10, len(flights)):
+        if len(btn) > 10:
+            break
+        btn.append(types.InlineKeyboardButton(
+            text = flights[i][0],
+            callback_data=str(flights[i][0]))
+        )
+        if k == len(flights):
+            flights_builder.row(btn[-1])
+        if k % 2 == 0:
+            flights_builder.row(btn[-2], btn[-1])
+        k+=1
+    flights_builder.row(close_btn)
     
     return flights_builder.as_markup()
+
+async def get_change_awb(awb, user_id):
+    database = get_db()
+    change_awb_builder = InlineKeyboardBuilder()
+    try:
+        pcs = await database.get_awb_info('pieces', awb, user_id)
+        w = await database.get_awb_info('weight', awb, user_id)
+        v = await database.get_awb_info('volume', awb, user_id)
+        cargo = await database.get_awb_info('cargo', awb, user_id)
+        fr = await database.get_awb_info('departure', awb, user_id)
+        dest = await database.get_awb_info('destination', awb, user_id)
+        flight = await database.get_awb_info('flight', awb, user_id)
+        date = await database.get_awb_info('date', awb, user_id)
+    except:
+        print('failed to get change awb')
+        fail_btn = (types.InlineKeyboardButton(
+            text = '❌NO SUCH AWB❌',
+            callback_data='close'))
+        change_awb_builder.row(fail_btn)
+        return change_awb_builder.as_markup()
+
+    change_awb_builder = InlineKeyboardBuilder()
+
+    close_btn = types.InlineKeyboardButton(
+            text = '❌',
+            callback_data='close')
+    
+    go_btn = types.InlineKeyboardButton(
+            text = '✅',
+            callback_data='go')
+    
+    pcs_btn = (types.InlineKeyboardButton(
+            text = f'pcs: {pcs}',
+            callback_data='pieces'
+    ))
+
+    weight_btn = (types.InlineKeyboardButton(
+            text = f'weight: {w}',
+            callback_data='weight'
+    ))
+
+    vol_btn = (types.InlineKeyboardButton(
+            text = f'volume: {v}',
+            callback_data='volume'
+    ))
+
+    cargo_btn = (types.InlineKeyboardButton(
+            text = f'cargo: {cargo}',
+            callback_data='cargo'
+    ))
+
+    fr_btn = (types.InlineKeyboardButton(
+            text = f'from: {fr}',
+            callback_data='departure'
+    ))
+
+    dest_btn = (types.InlineKeyboardButton(
+            text = f'to: {dest}',
+            callback_data='destination'
+    ))
+
+    flight_btn = (types.InlineKeyboardButton(
+            text = f'flight: {flight}',
+            callback_data='flight'
+    ))
+    date_btn = (types.InlineKeyboardButton(
+            text = f'date: {date}',
+            callback_data='date'
+    ))
+
+    change_awb_builder.row(pcs_btn, weight_btn)
+    change_awb_builder.row(vol_btn, cargo_btn)
+    change_awb_builder.row(fr_btn, dest_btn)
+    change_awb_builder.row(flight_btn, date_btn)
+    change_awb_builder.row(close_btn, go_btn)
+
+    return change_awb_builder.as_markup()
+    
