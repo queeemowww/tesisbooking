@@ -3,6 +3,7 @@ import asyncio
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+from database.db_provider import get_db
 import time
 import re
 
@@ -160,7 +161,7 @@ class Booking:
         return new_status
 
     async def change(self, awb, fr=None, to=None, pcs=None, w=None, v=None, cargo=None, flight=None, day=None, month=None, message=None):
-        # database = Db()
+        db = get_db()
         day = day[:2]
         month = month[2:]
         if message:
@@ -176,10 +177,15 @@ class Booking:
             await self.page.wait_for_selector('[class = "ant-descriptions-item-content"]')
             status_el = await self.page.query_selector_all('[class = "ant-descriptions-item-content"]')
             status = await status_el[20].inner_text()
+            # previous_date = await status_el[18].inner_text()
+            # previous_flight = await status_el[16].inner_text()
 
         except Exception as e:
             status = "ND"
             print(e)
+
+        # if previous_date[:2] == day and previous_flight == flight and status != 'CN':
+        #     return "The flight has not changed, please change the flight or leave it how it is"
 
         if message:
             await prev[message.chat.id].edit_text(f"Previous booking status:  <b>{status}</b> ⏳{round(15/34*100, 2)}%⏳")
@@ -208,6 +214,7 @@ class Booking:
         if message:
             await prev[message.chat.id].edit_text(f"Searching for new flight: ⏳{round(26/34*100, 2)}%⏳")
 
+
         if flight and day:
             await asyncio.sleep(0.5)
             found = False
@@ -216,8 +223,18 @@ class Booking:
                 i += 1
                 frame = await self.page.query_selector('div[class = "ant-space css-lked6w ant-space-vertical ant-space-gap-row-small ant-space-gap-col-small FormBookingCargoUpload__SpaceStyled-cnRtNM ejwOjg"]')
                 rows = await frame.query_selector_all('tr[class = "ant-table-row ant-table-row-level-0"]')
-                if (29 + i)/34 > 1:
-                    raise IndexError
+                selected_flight = await frame.query_selector_all('tr[class = "ant-table-row ant-table-row-level-0 ant-table-row-selected"]')
+                if len(selected_flight):
+                    selected_tds = await selected_flight[0].query_selector_all("td")
+                    selected_num = await selected_tds[5].inner_text()
+                    selected_date = await selected_tds[4].inner_text()
+
+                    if selected_num == flight and selected_date[:2] == day:
+                        if message:
+                            await prev[message.chat.id].delete()
+                            await self.browser.close()
+                            return {'ffa': 'The flight was selected before! Please change the flight or leave as it is. The cargo info (pieces, weight and volume were applied)'}
+        
                 for row in rows:
                     tds = await row.query_selector_all("td")
                     date_text = await tds[2].inner_text()
@@ -230,8 +247,8 @@ class Booking:
                     await asyncio.sleep(1)
                     await self.page.click("li.ant-pagination-next")
 
-                if message:
-                    await prev[message.chat.id].edit_text(f"Searching for new flight: ⏳{round((29 + i)/34 * 100, 2)}%⏳")
+                # if message:
+                #     await prev[message.chat.id].edit_text(f"Searching for new flight: ⏳{round((29 + i)/34 * 100, 2)}%⏳")
 
             apply = await self.page.query_selector_all("button:has-text('Применить')")
             await apply[-1].click()
@@ -260,9 +277,9 @@ REF/CHACSSU""".upper()
         if message:
             await message.bot.send_message(chat_id=os.getenv("ADMIN_ID"), text=f"{message.chat.full_name}:<code>{ffa}</code>")
 
-        # await database.update_awb(awb, ['booking_status', new_status])
-        # await database.update_awb(awb, ['flight', flight_actual])
-        # await database.update_awb(awb, ['date', day + month.upper()])
+        await db.update_awb(awb, ['booking_status', new_status])
+        await db.update_awb(awb, ['flight', flight_actual])
+        await db.update_awb(awb, ['date', day + month.upper()])
 
         if message:
             await prev[message.chat.id].delete()
@@ -278,6 +295,7 @@ REF/CHACSSU""".upper()
 
 
     async def book(self, fr, to, pcs, w, v, cargo, flight, day, month, message = None):
+        db = get_db()
         await self.launch_browser()
         await self.login_portal()
         if message:
@@ -356,6 +374,20 @@ REF/CHACSSU""".upper()
                 await prev[message.chat.id].delete()
                 del prev[message.chat.id]
             await self.close_browser()
+
+        await db.insert_awb(awb=awb_num,
+                            pieces=pcs,
+                            weight=w,
+                            volume=v,
+                            cargo=cargo,
+                            departure=fr,
+                            destination=to,
+                            flight=flight_text,
+                            date=day+month,
+                            booking_status=status,
+                            arrival_status='ND',
+                            user_id=message.chat.id)
+
         return {
             "awb": awb_num,
             "flight": flight_text,
