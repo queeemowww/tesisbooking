@@ -16,7 +16,7 @@ class Arrival():
 
     async def launch_browser(self):
         playwright = await async_playwright().start()
-        self.browser = await playwright.chromium.launch(headless=False)
+        self.browser = await playwright.chromium.launch(headless=True)
         self.page = await self.browser.new_page()
 
     async def is_arrived(self, awb):
