@@ -365,8 +365,6 @@ REF/CHACSSU""".upper()
             awb_num_el = await self.page.query_selector(".ant-descriptions-item-content")
             awb_num = await awb_num_el.inner_text()
 
-            awb_num = await self.page.locator(".ant-select-selector").nth(3).inner_text()
-
             status_el = await self.page.query_selector_all('[class = "ant-descriptions-item-content"]')
             status = await status_el[20].inner_text()
         finally:
