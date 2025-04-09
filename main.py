@@ -140,9 +140,9 @@ class Reservation:
 
         # Запускаем фоновую работу в фоне
         background_tasks = [
-            # asyncio.create_task(self.check_arrivals(3600)),
+            asyncio.create_task(self.check_arrivals(3600)),
             asyncio.create_task(self.check_booking(3600)),
-            # asyncio.create_task(self.check_available_flights(3600)),
+            asyncio.create_task(self.check_available_flights(3600)),
         ]
 
         # dp.start_polling держит event loop активным

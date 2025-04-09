@@ -25,7 +25,7 @@ class Booking:
 
     async def launch_browser(self):
         playwright = await async_playwright().start()
-        self.browser = await playwright.chromium.launch(headless=True)
+        self.browser = await playwright.chromium.launch(headless=False)
         self.page = await self.browser.new_page()
 
     async def close_browser(self):
@@ -347,8 +347,8 @@ REF/CHACSSU""".upper()
                         break
                 if found:
                     break
-                if message:
-                    await prev[message.chat.id].edit_text(f'Processing ⏳{round(29/34*100, 2)}%⏳"')
+                # if message:
+                #     await prev[message.chat.id].edit_text(f'Processing ⏳{round(29/34*100, 2)}%⏳"')
                 await self.page.click("span.anticon.anticon-right")
                 await self.page.wait_for_timeout(1000)
             await self.page.click("button:has-text('Применить')")
