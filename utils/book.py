@@ -25,7 +25,7 @@ class Booking:
 
     async def launch_browser(self):
         playwright = await async_playwright().start()
-        self.browser = await playwright.chromium.launch(headless=False)
+        self.browser = await playwright.chromium.launch(headless=True)
         self.page = await self.browser.new_page()
 
     async def close_browser(self):
@@ -342,6 +342,7 @@ REF/CHACSSU""".upper()
                     date_text = await tds[2].inner_text()
                     flight_text = await tds[3].inner_text()
                     if date_text[:2] == day and flight_text.lower() == flight.lower():
+                        print("here")
                         await tds[0].click()
                         found = True
                         break
@@ -350,8 +351,8 @@ REF/CHACSSU""".upper()
                 if message:
                     await prev[message.chat.id].edit_text(f'Processing ⏳{round(18+i/34*100, 2)}%⏳"')
                     i += 1 
+                await asyncio.sleep(3)
                 await self.page.click("span.anticon.anticon-right")
-                await self.page.wait_for_timeout(1000)
             await self.page.click("button:has-text('Применить')")
             await self.page.wait_for_timeout(1000)
             await self.page.click("button:has-text('Сохранить и отправить')")
@@ -397,10 +398,10 @@ REF/CHACSSU""".upper()
 REF/CHACSSU""".upper()
         }
 
-# if __name__ == '__main__':
-#     bk = Booking()
+if __name__ == '__main__':
+    bk = Booking()
     # print(asyncio.run(bk.check('555-10217760')))
 #     # print(asyncio.run(bk.cancel('555-10217760')))
 #     # print(asyncio.run(bk.available_flights('ist', "svo", '29', 'mar')))
 #     # print(asyncio.run(bk.change(awb='555-10217760', fr = 'ist', to='svo', cargo='SPP', flight='SU2137', day='10', month='apr')))
-#     print(asyncio.run(bk.book('ist', 'svo', '1', '1', '0.01', 'SPP', 'SU2139', '14', 'apr')))
+    print(asyncio.run(bk.book('ist', 'svo', '1', '1', '0.01', 'SPP', 'SU2133', '11', 'apr')))
