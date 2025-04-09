@@ -141,7 +141,7 @@ class Booking:
             )
             status = await status_el[20].inner_text()
 
-            if status != "KK" or status != 'NN':
+            if status != "KK" and status != 'NN':
                 return f"{awb}: not cancelable (status: {status})"
             if message:
                 await prev[message.chat.id].edit_text(f'Processing ⏳{round(23/34*100, 2)}%⏳"')
