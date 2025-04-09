@@ -122,7 +122,7 @@ async def book_08(callback: types.CallbackQuery, state: FSMContext):
                       month = await db.get_awb_info('date', awb[callback.message.chat.id], callback.message.chat.id),
                       message = callback.message
                       )
-        await callback.message.answer(result['ffa'], reply_markup = menu_builder.as_markup())
+        await callback.message.answer('<code>' + result['ffa'] + '</code>', reply_markup = menu_builder.as_markup())
     except Exception as e:
         await callback.message.answer('something went wrong, please try your request later', reply_markup = menu_builder.as_markup()) 
         print(e)

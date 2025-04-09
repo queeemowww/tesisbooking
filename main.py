@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from dotenv import load_dotenv
@@ -17,7 +17,7 @@ import datetime
 
 load_dotenv()
 ADMIN_IDS = os.getenv('ADMIN_IDS')
-
+prev = {}
 departure = ['AYT', 'IST']
 
 class Reservation:
@@ -39,8 +39,12 @@ class Reservation:
         await self.database.init()
         set_db_instance(self.database)
 
-        @self.dp.message(Command("start"))
+        @self.dp.message(CommandStart())
         async def cmd_start(message: types.Message):
+            # try:
+            #     await prev[message.chat.id].delete()
+            # except:
+            #     pass
 
             if not str(message.chat.id) in ADMIN_IDS:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
@@ -53,24 +57,32 @@ class Reservation:
                     str(message.chat.last_name)
                 )
                 await message.delete()
-                await message.answer(
+                prev[message.chat.id] = await message.answer(
                     "Hello, this is an official Tesis cargo booking system. Please choose an option below",
                     reply_markup=menu_builder.as_markup()
                 )
 
         @self.dp.message(Command("clear"))
         async def cmd_clear(message: types.Message, state: FSMContext):
+            try:
+                await prev[message.chat.id].delete()
+            except:
+                pass
 
             if not str(message.chat.id) in ADMIN_IDS:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
                  return
             else:
                 await message.delete()
-                await message.answer("The context was cleared")
+                prev[message.chat.id] = await message.answer("The context was cleared")
                 await state.clear()
 
-        @self.dp.message(F.text != "/clear", StateFilter(None))
+        @self.dp.message(F.text != "/clear", F.text != '/start', StateFilter(None))
         async def menu(message: types.Message):
+            try:
+                await prev[message.chat.id].delete()
+            except:
+                pass
 
             if not str(message.chat.id) in ADMIN_IDS:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
@@ -78,7 +90,7 @@ class Reservation:
 
             else:
                 await message.delete()
-                await message.answer(
+                prev[message.chat.id] = await message.answer(
                     "Please choose an option",
                     reply_markup=menu_builder.as_markup()
                 )
