@@ -319,7 +319,7 @@ REF/CHACSSU""".upper()
             await inputs[11].click()
             await asyncio.sleep(.3)
             if message:
-                await prev[message.chat.id].edit_text(f'Processing ⏳{round(19/34*100, 2)}%⏳"')
+                await prev[message.chat.id].edit_text(f'Processing ⏳{round(17/34*100, 2)}%⏳"')
             await inputs[11].press("Enter")
             await inputs[12].fill(pcs)
             await inputs[12].press("Enter")
@@ -342,7 +342,6 @@ REF/CHACSSU""".upper()
                     date_text = await tds[2].inner_text()
                     flight_text = await tds[3].inner_text()
                     if date_text[:2] == day and flight_text.lower() == flight.lower():
-                        print("here")
                         await tds[0].click()
                         found = True
                         break
@@ -351,7 +350,6 @@ REF/CHACSSU""".upper()
                 if message:
                     await prev[message.chat.id].edit_text(f'Processing ⏳{round(18+i/34*100, 2)}%⏳"')
                     i += 1 
-                await asyncio.sleep(3)
                 await self.page.click("span.anticon.anticon-right")
             await self.page.click("button:has-text('Применить')")
             await self.page.wait_for_timeout(1000)
