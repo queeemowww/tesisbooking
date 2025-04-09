@@ -16,6 +16,7 @@ from utils.book import Booking
 import datetime
 
 load_dotenv()
+ADMIN_ID = os.getenv('ADMIN_ID')
 
 departure = ['AYT', 'IST']
 
@@ -37,8 +38,13 @@ class Reservation:
         self.database = Db()
         await self.database.init()
         set_db_instance(self.database)
+
         @self.dp.message(Command("start"))
         async def cmd_start(message: types.Message):
+
+            if message.chat.id != ADMIN_ID:
+                 await message.answer("You seem to be a stranger, ?huh? 🧌")
+            
             await self.database.insert_user(
                 str(message.chat.id),
                 str(message.chat.username),
@@ -53,12 +59,20 @@ class Reservation:
 
         @self.dp.message(Command("clear"))
         async def cmd_clear(message: types.Message, state: FSMContext):
+
+            if message.chat.id != ADMIN_ID:
+                 await message.answer("You seem to be a stranger, ?huh? 🧌")
+
             await message.delete()
             await message.answer("The context was cleared")
             await state.clear()
 
         @self.dp.message(F.text != "/clear", StateFilter(None))
         async def menu(message: types.Message):
+
+            if message.chat.id != ADMIN_ID:
+                 await message.answer("You seem to be a stranger, ?huh? 🧌")
+                 
             await message.delete()
             await message.answer(
                 "Please choose an option",
