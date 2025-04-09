@@ -42,7 +42,7 @@ class Reservation:
         @self.dp.message(Command("start"))
         async def cmd_start(message: types.Message):
 
-            if message.chat.id != ADMIN_ID:
+            if str(message.chat.id) != ADMIN_ID:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
                  return
             else:
@@ -61,7 +61,7 @@ class Reservation:
         @self.dp.message(Command("clear"))
         async def cmd_clear(message: types.Message, state: FSMContext):
 
-            if message.chat.id != ADMIN_ID:
+            if str(message.chat.id) != ADMIN_ID:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
                  return
             else:
@@ -72,7 +72,7 @@ class Reservation:
         @self.dp.message(F.text != "/clear", StateFilter(None))
         async def menu(message: types.Message):
 
-            if message.chat.id != ADMIN_ID:
+            if str(message.chat.id) != ADMIN_ID:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
                  return
 
@@ -100,7 +100,7 @@ class Reservation:
             try:
                 awbs = await self.database.get_not_booked()
                 for awb in awbs:
-                    booking_status = await self.booking.check(awb=awb[0])
+                    booking_status = await self.booking.check(awb=awb)
                     await self.database.update_awb(awb[0], ['booking_status', booking_status[0]])
                 print(f"[BOOKING] Checked booking_status for all awbs. Next check in {delay}s")
             except Exception as e:
@@ -128,9 +128,9 @@ class Reservation:
 
         # Запускаем фоновую работу в фоне
         background_tasks = [
-            asyncio.create_task(self.check_arrivals(3600)),
+            # asyncio.create_task(self.check_arrivals(3600)),
             asyncio.create_task(self.check_booking(3600)),
-            asyncio.create_task(self.check_available_flights(3600)),
+            # asyncio.create_task(self.check_available_flights(3600)),
         ]
 
         # dp.start_polling держит event loop активным

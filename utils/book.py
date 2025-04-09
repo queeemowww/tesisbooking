@@ -7,7 +7,6 @@ from database.db_provider import get_db
 import time
 import re
 
-# from db import Db  # если database локально используется
 prev = {}  # если prev – глобальный словарь
 load_dotenv()
 
@@ -26,7 +25,7 @@ class Booking:
 
     async def launch_browser(self):
         playwright = await async_playwright().start()
-        self.browser = await playwright.chromium.launch(headless=True)
+        self.browser = await playwright.chromium.launch(headless=False)
         self.page = await self.browser.new_page()
 
     async def close_browser(self):
@@ -117,8 +116,9 @@ class Booking:
             print(e)
         finally:
             await self.close_browser()
-            await prev[message.chat.id].delete()
-            del prev[message.chat.id]
+            if message:
+                await prev[message.chat.id].delete()
+                del prev[message.chat.id]
         return status
 
     async def cancel(self, awb, message = None):
@@ -398,7 +398,7 @@ REF/CHACSSU""".upper()
 
 # if __name__ == '__main__':
 #     bk = Booking()
-#     # print(asyncio.run(bk.check('555-10217760')))
+    # print(asyncio.run(bk.check('555-10217760')))
 #     # print(asyncio.run(bk.cancel('555-10217760')))
 #     # print(asyncio.run(bk.available_flights('ist', "svo", '29', 'mar')))
 #     # print(asyncio.run(bk.change(awb='555-10217760', fr = 'ist', to='svo', cargo='SPP', flight='SU2137', day='10', month='apr')))
