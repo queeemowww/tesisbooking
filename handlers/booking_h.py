@@ -260,12 +260,12 @@ async def book_28(callback: types.CallbackQuery, state: FSMContext):
 async def book_28_1(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     bk = Booking(country="TURKEY")
-    # try:
-    result = await bk.book(fr=fr[callback.message.chat.id], to = to[callback.message.chat.id], pcs=pcs[callback.message.chat.id], w=w[callback.message.chat.id], v=v[callback.message.chat.id], day=day[callback.message.chat.id], month=month[callback.message.chat.id], flight=flight[callback.message.chat.id], cargo=cargo[callback.message.chat.id], message=callback.message)
-    await callback.message.answer('<code>' + result['ffa'] + '</code>', reply_markup = menu_builder.as_markup())
+    try:
+        result = await bk.book(fr=fr[callback.message.chat.id], to = to[callback.message.chat.id], pcs=pcs[callback.message.chat.id], w=w[callback.message.chat.id], v=v[callback.message.chat.id], day=day[callback.message.chat.id], month=month[callback.message.chat.id], flight=flight[callback.message.chat.id], cargo=cargo[callback.message.chat.id], message=callback.message)
+        await callback.message.answer('<code>' + result['ffa'] + '</code>', reply_markup = menu_builder.as_markup())
 
-    # except Exception as e:
-    #     await callback.message.answer("Something went wrong, plaese try your request later")
+    except Exception as e:
+        await callback.message.answer("Something went wrong, plaese try your request later")
     await state.set_state(None)
 
 @router.callback_query(F.data == "cn")

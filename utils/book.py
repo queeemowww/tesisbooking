@@ -331,9 +331,9 @@ REF/CHACSSU""".upper()
             textareas = await self.page.query_selector_all("textarea")
             await textareas[0].fill(cargo)
             if message:
-                await prev[message.chat.id].edit_text(f'Processing ⏳{round(20/34*100, 2)}%⏳"')
+                await prev[message.chat.id].edit_text(f'Processing ⏳{round(18/34*100, 2)}%⏳"')
             await self.page.click("button:has-text('Выбрать рейс')")
-
+            i = 0
             while True:
                 rows = await self.page.query_selector_all("tr.ant-table-row")
                 found = False
@@ -347,8 +347,9 @@ REF/CHACSSU""".upper()
                         break
                 if found:
                     break
-                # if message:
-                #     await prev[message.chat.id].edit_text(f'Processing ⏳{round(29/34*100, 2)}%⏳"')
+                if message:
+                    await prev[message.chat.id].edit_text(f'Processing ⏳{round(18+i/34*100, 2)}%⏳"')
+                    i += 1 
                 await self.page.click("span.anticon.anticon-right")
                 await self.page.wait_for_timeout(1000)
             await self.page.click("button:has-text('Применить')")
