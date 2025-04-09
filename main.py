@@ -45,18 +45,18 @@ class Reservation:
             if message.chat.id != ADMIN_ID:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
                  return
-            
-            await self.database.insert_user(
-                str(message.chat.id),
-                str(message.chat.username),
-                str(message.chat.first_name),
-                str(message.chat.last_name)
-            )
-            await message.delete()
-            await message.answer(
-                "Hello, this is an official Tesis cargo booking system. Please choose an option below",
-                reply_markup=menu_builder.as_markup()
-            )
+            else:
+                await self.database.insert_user(
+                    str(message.chat.id),
+                    str(message.chat.username),
+                    str(message.chat.first_name),
+                    str(message.chat.last_name)
+                )
+                await message.delete()
+                await message.answer(
+                    "Hello, this is an official Tesis cargo booking system. Please choose an option below",
+                    reply_markup=menu_builder.as_markup()
+                )
 
         @self.dp.message(Command("clear"))
         async def cmd_clear(message: types.Message, state: FSMContext):
@@ -64,10 +64,10 @@ class Reservation:
             if message.chat.id != ADMIN_ID:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
                  return
-
-            await message.delete()
-            await message.answer("The context was cleared")
-            await state.clear()
+            else:
+                await message.delete()
+                await message.answer("The context was cleared")
+                await state.clear()
 
         @self.dp.message(F.text != "/clear", StateFilter(None))
         async def menu(message: types.Message):
@@ -76,11 +76,12 @@ class Reservation:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
                  return
 
-            await message.delete()
-            await message.answer(
-                "Please choose an option",
-                reply_markup=menu_builder.as_markup()
-            )
+            else:
+                await message.delete()
+                await message.answer(
+                    "Please choose an option",
+                    reply_markup=menu_builder.as_markup()
+                )
 
     async def check_arrivals(self, delay):
         while True:
