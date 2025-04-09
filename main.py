@@ -44,6 +44,7 @@ class Reservation:
 
             if message.chat.id != ADMIN_ID:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
+                 return
             
             await self.database.insert_user(
                 str(message.chat.id),
@@ -62,6 +63,7 @@ class Reservation:
 
             if message.chat.id != ADMIN_ID:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
+                 return
 
             await message.delete()
             await message.answer("The context was cleared")
@@ -72,7 +74,8 @@ class Reservation:
 
             if message.chat.id != ADMIN_ID:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
-                 
+                 return
+
             await message.delete()
             await message.answer(
                 "Please choose an option",
