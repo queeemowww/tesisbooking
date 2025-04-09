@@ -25,7 +25,7 @@ class Booking:
 
     async def launch_browser(self):
         playwright = await async_playwright().start()
-        self.browser = await playwright.chromium.launch(headless=True)
+        self.browser = await playwright.chromium.launch(headless=Trues)
         self.page = await self.browser.new_page()
 
     async def close_browser(self):
@@ -232,7 +232,7 @@ class Booking:
                     if selected_num == flight and selected_date[:2] == day:
                         if message:
                             await prev[message.chat.id].delete()
-                            await self.browser.close()
+                            await self.close_browser()
                             return {'ffa': 'The flight was selected before! Please change the flight or leave as it is. The cargo info (pieces, weight and volume were applied)'}
         
                 for row in rows:

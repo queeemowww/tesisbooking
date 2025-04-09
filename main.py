@@ -32,7 +32,8 @@ class Reservation:
         )
 
         self.arrival = Arrival()
-        self.booking = Booking()
+        self.bk_booked = Booking()
+        self.bk_available_flights = Booking()
 
     async def setup_handlers(self):
         self.database = Db()
@@ -112,8 +113,9 @@ class Reservation:
             try:
                 awbs = await self.database.get_not_booked()
                 for awb in awbs:
-                    booking_status = await self.booking.check(awb=awb)
-                    await self.database.update_awb(awb[0], ['booking_status', booking_status[0]])
+                    booking_status = await self.bk_booked.check(awb=awb)
+                    print(booking_status)
+                    await self.database.update_awb(awb, ['booking_status', booking_status])
                 print(f"[BOOKING] Checked booking_status for all awbs. Next check in {delay}s")
             except Exception as e:
                 print(f"[BOOKING ERROR] {e}")
@@ -126,7 +128,7 @@ class Reservation:
                 for dep in departure:
                     for i in range(10):
                         tomorrow = today + datetime.timedelta(days=i)
-                        flights = await self.booking.available_flights(dep, 'SVO', str(tomorrow)[-2:], 'ND')
+                        flights = await self.bk_available_flights.available_flights(dep, 'SVO', str(tomorrow)[-2:], 'ND')
                         for f in flights:
                             await self.database.ins_upd_available_flight(str(datetime.datetime.now()), f[0], dep, 'SVO', f[2], f[1])
                 print(f"[FLIGHTS] Updated available flights. Next update in {delay}s")
@@ -141,7 +143,9 @@ class Reservation:
         # Запускаем фоновую работу в фоне
         background_tasks = [
             asyncio.create_task(self.check_arrivals(3600)),
+            asyncio.sleep(10),
             asyncio.create_task(self.check_booking(3600)),
+            asyncio.sleep(10),
             asyncio.create_task(self.check_available_flights(3600)),
         ]
 
