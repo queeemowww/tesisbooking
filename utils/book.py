@@ -275,7 +275,7 @@ class Booking:
 REF/CHACSSU""".upper()
 
         if message:
-            await message.bot.send_message(chat_id=os.getenv("ADMIN_ID"), text=f"{message.chat.full_name}:<code>{ffa}</code>")
+            await message.bot.send_message(chat_id=os.getenv("ADMIN_IDS")[0], text=f"{message.chat.full_name}:<code>{ffa}</code>")
 
         await db.update_awb(awb, ['booking_status', new_status])
         await db.update_awb(awb, ['flight', flight_actual])

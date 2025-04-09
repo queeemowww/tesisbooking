@@ -16,7 +16,7 @@ from utils.book import Booking
 import datetime
 
 load_dotenv()
-ADMIN_ID = os.getenv('ADMIN_ID')
+ADMIN_IDS = os.getenv('ADMIN_IDS')
 
 departure = ['AYT', 'IST']
 
@@ -42,7 +42,7 @@ class Reservation:
         @self.dp.message(Command("start"))
         async def cmd_start(message: types.Message):
 
-            if str(message.chat.id) != ADMIN_ID:
+            if not str(message.chat.id) in ADMIN_IDS:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
                  return
             else:
@@ -61,7 +61,7 @@ class Reservation:
         @self.dp.message(Command("clear"))
         async def cmd_clear(message: types.Message, state: FSMContext):
 
-            if str(message.chat.id) != ADMIN_ID:
+            if not str(message.chat.id) in ADMIN_IDS:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
                  return
             else:
@@ -72,7 +72,7 @@ class Reservation:
         @self.dp.message(F.text != "/clear", StateFilter(None))
         async def menu(message: types.Message):
 
-            if str(message.chat.id) != ADMIN_ID:
+            if not str(message.chat.id) in ADMIN_IDS:
                  await message.answer("You seem to be a stranger, ?huh? 🧌")
                  return
 
