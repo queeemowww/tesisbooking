@@ -216,6 +216,8 @@ class Booking:
                 i += 1
                 frame = await self.page.query_selector('div[class = "ant-space css-lked6w ant-space-vertical ant-space-gap-row-small ant-space-gap-col-small FormBookingCargoUpload__SpaceStyled-cnRtNM ejwOjg"]')
                 rows = await frame.query_selector_all('tr[class = "ant-table-row ant-table-row-level-0"]')
+                if (29 + i)/34 > 1:
+                    raise IndexError
                 for row in rows:
                     tds = await row.query_selector_all("td")
                     date_text = await tds[2].inner_text()
