@@ -1,0 +1,7 @@
+aiogram==3.19.0
+asyncpg==0.30.0
+openpyxl==3.1.2
+playwright==1.51.0
+python-dotenv==1.1.0
+Requests==2.32.3
+selenium==4.31.0
