@@ -141,7 +141,7 @@ class Booking:
             )
             status = await status_el[20].inner_text()
 
-            if status != "KK":
+            if status != "KK" or status != 'NN':
                 return f"{awb}: not cancelable (status: {status})"
             if message:
                 await prev[message.chat.id].edit_text(f'Processing ⏳{round(23/34*100, 2)}%⏳"')
@@ -158,7 +158,7 @@ class Booking:
             await self.close_browser()
             await prev[message.chat.id].delete()
             del prev[message.chat.id]
-        return new_status
+        return f'{awb} cancelled: {new_status}'
 
     async def change(self, awb, fr=None, to=None, pcs=None, w=None, v=None, cargo=None, flight=None, day=None, month=None, message=None):
         db = get_db()

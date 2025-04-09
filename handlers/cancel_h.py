@@ -75,7 +75,7 @@ async def book_05(callback: types.CallbackQuery, state: FSMContext):
     bk = Booking(country='TURKEY')
     try:
         status = await bk.cancel(awb=awb[callback.message.chat.id], message=callback.message)
-        await callback.message.answer(f'{awb} cancelled: {status}', reply_markup = menu_builder.as_markup())
+        await callback.message.answer(status, reply_markup = menu_builder.as_markup())
         await db.update_awb(awb=awb[callback.message.chat.id], upd_val=('booking_status', status))
     except Exception as e:
         await callback.message.answer("Something went wrong, plaese try your reqest later")
