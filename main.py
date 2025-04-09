@@ -30,7 +30,7 @@ class Reservation:
             booking_h.router, change_h.router, cancel_h.router, check_h.router, awb_history_h.router
         )
 
-        self.arrival = Arrival()
+        # self.arrival = Arrival()
         self.booking = Booking()
 
     async def setup_handlers(self):
@@ -65,17 +65,17 @@ class Reservation:
                 reply_markup=menu_builder.as_markup()
             )
 
-    async def check_arrivals(self, delay):
-        while True:
-            try:
-                awbs = await self.database.get_not_arrived()
-                for awb in awbs:
-                    arrival_status = await self.arrival.is_arrived(awb[0][:3], awb[0][4:])
-                    await self.database.update_awb(awb[0], ['arrival_status', arrival_status[0]])
-                print(f"[ARRIVALS] Checked arrival_status for all awbs. Next check in {delay}s")
-            except Exception as e:
-                print(f"[ARRIVALS ERROR] {e}")
-            await asyncio.sleep(delay)
+    # async def check_arrivals(self, delay):
+    #     while True:
+    #         try:
+    #             awbs = await self.database.get_not_arrived()
+    #             for awb in awbs:
+    #                 arrival_status = await self.arrival.is_arrived(awb[0][:3], awb[0][4:])
+    #                 await self.database.update_awb(awb[0], ['arrival_status', arrival_status[0]])
+    #             print(f"[ARRIVALS] Checked arrival_status for all awbs. Next check in {delay}s")
+    #         except Exception as e:
+    #             print(f"[ARRIVALS ERROR] {e}")
+    #         await asyncio.sleep(delay)
 
     async def check_booking(self, delay):
         while True:
