@@ -292,8 +292,6 @@ REF/CHACSSU""".upper()
             "ffa": ffa
         }
 
-
-
     async def book(self, fr, to, pcs, w, v, cargo, flight, day, month, message = None):
         db = get_db()
         await self.launch_browser()
@@ -373,6 +371,7 @@ REF/CHACSSU""".upper()
                 del prev[message.chat.id]
             await self.close_browser()
 
+        await db.update_awb(f"ID{message.chat.id}", ("booking_status", status))
         return {
             "awb": awb_num,
             "flight": flight_text,
