@@ -16,7 +16,7 @@ class Arrival():
 
     async def launch_browser(self):
         playwright = await async_playwright().start()
-        self.browser = await playwright.chromium.launch(headless=True)
+        self.browser = await playwright.chromium.launch(headless=False)
         self.page = await self.browser.new_page()
 
     async def is_arrived(self, awb):
@@ -37,4 +37,4 @@ class Arrival():
         
 # if __name__ == '__main__':
 #     ar = Arrival()
-#     print(asyncio.run(ar.is_arrived('555-10217771')))
+#     print(asyncio.run(ar.is_arrived('555-01312313')))
