@@ -8,11 +8,14 @@ from aiogram.types.input_file import FSInputFile
 from aiogram.filters import Command, StateFilter
 from states.booking_states import Bk_states
 import os
-from kb.booking_kb import confirm_builder, menu_builder, country_builder
+from kb.booking_kb import confirm_builder, menu_builder, country_builder, get_change_awb
 import re
+from database.db_provider import get_db
+
 country = {}
 router = Router()
 
+change_val = {}
 prev = {}
 fr = {}
 to = {}
@@ -227,11 +230,65 @@ async def book_27(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     prev[callback.message.chat.id] = await callback.message.answer('<b>CARGO TYPE</b>(SPP, EQUIPMENT...)')
 
+
 @router.callback_query(F.data == "ok", StateFilter(Bk_states.cargo))
+async def book_27_01(callback: types.CallbackQuery, state: FSMContext):
+    db = get_db()
+    await db.insert_awb(awb=f'ID{callback.message.chat.id}',
+                            pieces=pcs[callback.message.chat.id],
+                            weight=w[callback.message.chat.id],
+                            volume=v[callback.message.chat.id],
+                            cargo=cargo[callback.message.chat.id],
+                            departure=fr[callback.message.chat.id],
+                            destination=to[callback.message.chat.id],
+                            flight=flight[callback.message.chat.id],
+                            date=day[callback.message.chat.id]+month[callback.message.chat.id],
+                            booking_status='ND',
+                            arrival_status='ND',
+                            user_id=callback.message.chat.id)
+    await callback.message.delete()
+    prev[callback.message.chat.id] = await callback.message.answer('Here is your reservation. You can edit it or proceed ', reply_markup= await get_change_awb(f'ID{callback.message.chat.id}', callback.message.chat.id))
+    await state.set_state(Bk_states.final)
+
+@router.callback_query(StateFilter(Bk_states.final), F.data != 'cn', F.data != 'ok', F.data != 'go', F.data != 'go', F.data != 'close')
+async def book_02336(callback: types.CallbackQuery, state: FSMContext):
+    db = get_db()
+    await prev[callback.message.chat.id].delete()
+    prev[callback.message.chat.id] = await callback.message.answer(f"<b>Set new value for {callback.data}</b>")
+    change_val[callback.message.chat.id] = callback.data
+
+
+@router.message(StateFilter(Bk_states.final))
+async def book_0236(message: types.Message, state: FSMContext):
+    db = get_db()
+    await prev[message.chat.id].delete()
+    await message.delete()
+    if await is_correct(change_val[message.chat.id], message.text):
+        prev[message.chat.id] = await message.answer(f'<b>{change_val[message.chat.id]}: {message.text}</b>', reply_markup=confirm_builder.as_markup())
+        await db.update_awb(f'ID{message.chat.id}', (change_val[message.chat.id], message.text))
+    else:
+        prev[message.chat.id] = await message.answer(f'Incorrect <b>{change_val[message.chat.id]}</b> format')
+
+@router.callback_query(StateFilter(Bk_states.final), F.data == 'ok')
+async def book_136(callback: types.CallbackQuery, state: FSMContext):
+    db = get_db()
+    await callback.message.delete()
+    prev[callback.message.chat.id] = await callback.message.answer('Here is your reservation. You can edit it or proceed ', reply_markup= await get_change_awb(f'ID{callback.message.chat.id}', callback.message.chat.id))
+
+@router.callback_query(StateFilter(Bk_states.final), F.data == 'ch')
+async def book_113123(callback: types.CallbackQuery, state: FSMContext):
+    db = get_db()
+    await prev[callback.message.chat.id].delete()
+    prev[callback.message.chat.id] = await callback.message.answer(f"<b>Set new value for {callback.data}</b>")
+    change_val[callback.message.chat.id] = callback.data
+
+@router.callback_query(F.data == "go", StateFilter(Bk_states.final))
 async def book_27_1(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     prev[callback.message.chat.id] = await callback.message.answer('<b>SELECT A COUNTRY</b>', reply_markup=country_builder.as_markup())
     await state.set_state(Bk_states.country)
+
+
 # @router.callback_query(StateFilter(Bk_states.country))
 # async def book_27_2(callback: types.CallbackQuery, state: FSMContext):
 #     await prev[callback.message.chat.id].delete()
@@ -245,31 +302,53 @@ async def book_27_3(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     prev[callback.message.chat.id] = await callback.message.answer('<b>SELECT A COUNTRY</b>', reply_markup=country_builder.as_markup())
 
-@router.callback_query(F.data == "CHINA", StateFilter(Bk_states.country))
-async def book_28(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    bk = Booking(country="CHINA")
-    try:
-        result = await bk.book(fr=fr[callback.message.chat.id], to = to[callback.message.chat.id], pcs=pcs[callback.message.chat.id], w=w[callback.message.chat.id], v=v[callback.message.chat.id], day=day[callback.message.chat.id], month=month[callback.message.chat.id], flight=flight[callback.message.chat.id], cargo=cargo[callback.message.chat.id], message=callback.message)
-        await callback.message.answer(result['ffa'], reply_markup = menu_builder.as_markup())
-    except Exception as e:
-        await callback.message.answer("Something went wrong, plaese try your request later")
-    await state.set_state(None)
+# @router.callback_query(F.data == "CHINA", StateFilter(Bk_states.country))
+# async def book_28(callback: types.CallbackQuery, state: FSMContext):
+#     await callback.message.delete()
+#     bk = Booking(country="CHINA")
+#     try:
+#         result = await bk.book(fr=fr[callback.message.chat.id], to = to[callback.message.chat.id], pcs=pcs[callback.message.chat.id], w=w[callback.message.chat.id], v=v[callback.message.chat.id], day=day[callback.message.chat.id], month=month[callback.message.chat.id], flight=flight[callback.message.chat.id], cargo=cargo[callback.message.chat.id], message=callback.message)
+#         await callback.message.answer(result['ffa'], reply_markup = menu_builder.as_markup())
+#     except Exception as e:
+#         await callback.message.answer("Something went wrong, plaese try your request later")
+#     await state.set_state(None)
 
 @router.callback_query(F.data == "TURKEY", StateFilter(Bk_states.country))
 async def book_28_1(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     bk = Booking(country="TURKEY")
+    db = get_db()
     # try:
     result = await bk.book(fr=fr[callback.message.chat.id], to = to[callback.message.chat.id], pcs=pcs[callback.message.chat.id], w=w[callback.message.chat.id], v=v[callback.message.chat.id], day=day[callback.message.chat.id], month=month[callback.message.chat.id], flight=flight[callback.message.chat.id], cargo=cargo[callback.message.chat.id], message=callback.message)
+    await db.update_awb(f'ID{callback.message.chat.id}', ('awb', result['awb']))
     await callback.message.answer('<code>' + result['ffa'] + '</code>', reply_markup = menu_builder.as_markup())
 
     # except Exception as e:
         # await callback.message.answer("Something went wrong, plaese try your request later")
     await state.set_state(None)
 
-@router.callback_query(F.data == "cn")
+@router.callback_query(F.data == "cn", F.data == 'close')
 async def book_cn(callback: types.CallbackQuery, state: FSMContext):
+    db = get_db()
+    await db.delete_awb(f"{callback.message.chat.id}")
     await callback.message.delete()
     prev[callback.message.chat.id] = await callback.message.answer('cancelled', reply_markup=menu_builder.as_markup())
     await state.set_state(None)
+
+
+async def is_correct(name, value):
+    patterns = {
+        'awb': "",
+        'pieces': "^\d{1,3}$",
+        'weight': "^\d{1,5}\.?\d{1,2}?$",
+        'volume': "^\d{1,2}.?\d{1,2}?$",
+        'departure': "^\w{3}$",
+        'destination': "^\w{3}$",
+        'flight': "^\w{2}\d{1,4}$",
+        'date': "^\d{2}\w{3}$",
+        'cargo': "^.+$"
+    }
+
+    if not re.match(patterns[name], value):
+        return False
+    return True

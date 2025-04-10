@@ -10,6 +10,7 @@ class Bk_states(StatesGroup):
     month = State()
     flight = State()
     cargo = State()
+    final = State()
     country = State()
 
 class Change_states(StatesGroup):

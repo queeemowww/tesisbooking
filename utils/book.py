@@ -373,19 +373,6 @@ REF/CHACSSU""".upper()
                 del prev[message.chat.id]
             await self.close_browser()
 
-        await db.insert_awb(awb=awb_num,
-                            pieces=pcs,
-                            weight=w,
-                            volume=v,
-                            cargo=cargo,
-                            departure=fr,
-                            destination=to,
-                            flight=flight_text,
-                            date=day+month,
-                            booking_status=status,
-                            arrival_status='ND',
-                            user_id=message.chat.id)
-
         return {
             "awb": awb_num,
             "flight": flight_text,

@@ -83,6 +83,16 @@ class Db:
         except Exception as e:
             print(f'Error: {e}')
 
+    async def delete_awb(self, awb):
+        try:
+            async with self.pool.acquire() as conn:
+                await conn.execute("""
+                    delete from awb where awb =
+                    $1;
+                """, awb)
+        except Exception as e:
+            print(f'Error: {e}')
+    
     async def update_awb(self, awb, upd_val):
         try:
             async with self.pool.acquire() as conn:
