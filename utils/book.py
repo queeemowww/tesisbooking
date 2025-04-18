@@ -244,7 +244,7 @@ class Booking:
                         found = True
                         break
                 if not found:
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(.3)
                     await self.page.click("li.ant-pagination-next")
 
                 # if message:
@@ -304,6 +304,9 @@ REF/CHACSSU""".upper()
             inputs = await self.page.query_selector_all("input")
             if message:
                 await prev[message.chat.id].edit_text(f'Processing ⏳{round(10/34*100, 2)}%⏳"')
+            await inputs[4].click()
+            await self.page.click("div:has-text('20250410_SA_200')[class = 'ant-select-item-option-content']")
+            await asyncio.sleep(0.3)
             await inputs[5].click()
             await asyncio.sleep(0.3)
             await inputs[5].press("Enter")
@@ -339,6 +342,7 @@ REF/CHACSSU""".upper()
                     tds = await row.query_selector_all("td")
                     date_text = await tds[2].inner_text()
                     flight_text = await tds[3].inner_text()
+                    print(date_text, day)
                     if date_text[:2] == day and flight_text.lower() == flight.lower():
                         await tds[0].click()
                         found = True
@@ -349,6 +353,7 @@ REF/CHACSSU""".upper()
                     await prev[message.chat.id].edit_text(f'Processing ⏳{round(18+i/34*100, 2)}%⏳"')
                     i += 1 
                 await self.page.click("span.anticon.anticon-right")
+                await asyncio.sleep(0.3)
             await self.page.click("button:has-text('Применить')")
             await self.page.wait_for_timeout(1000)
             await self.page.click("button:has-text('Сохранить и отправить')")
@@ -388,4 +393,4 @@ if __name__ == '__main__':
 #     # print(asyncio.run(bk.cancel('555-10217760')))
 #     # print(asyncio.run(bk.available_flights('ist', "svo", '29', 'mar')))
 #     # print(asyncio.run(bk.change(awb='555-10217760', fr = 'ist', to='svo', cargo='SPP', flight='SU2137', day='10', month='apr')))
-    print(asyncio.run(bk.book('ist', 'svo', '1', '1', '0.01', 'SPP', 'SU2133', '11', 'apr')))
+    print(asyncio.run(bk.book('ist', 'svo', '1', '1', '0.01', 'SPP', 'SU2133', '25', 'apr')))
