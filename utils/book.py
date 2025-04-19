@@ -342,7 +342,6 @@ REF/CHACSSU""".upper()
                     tds = await row.query_selector_all("td")
                     date_text = await tds[2].inner_text()
                     flight_text = await tds[3].inner_text()
-                    print(date_text, day)
                     if date_text[:2] == day and flight_text.lower() == flight.lower():
                         await tds[0].click()
                         found = True
@@ -353,7 +352,7 @@ REF/CHACSSU""".upper()
                     await prev[message.chat.id].edit_text(f'Processing ⏳{round(18+i/34*100, 2)}%⏳"')
                     i += 1 
                 await self.page.click("span.anticon.anticon-right")
-                await asyncio.sleep(0.3)
+                await asyncio.sleep(0.6)
             await self.page.click("button:has-text('Применить')")
             await self.page.wait_for_timeout(1000)
             await self.page.click("button:has-text('Сохранить и отправить')")
