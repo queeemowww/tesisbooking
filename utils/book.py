@@ -370,6 +370,8 @@ REF/CHACSSU""".upper()
 
             status_el = await self.page.query_selector_all('[class = "ant-descriptions-item-content"]')
             status = await status_el[20].inner_text()
+        except Exception as e:
+            print(e)
         finally:
             if message:
                 await prev[message.chat.id].delete()
